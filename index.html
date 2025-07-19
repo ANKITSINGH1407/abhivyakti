@@ -221,7 +221,7 @@
       <section class="bg-blue-700 text-yellow-400 py-16 text-center px-4">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
           <div class="flex-shrink-0">
-            <img src="image/RJIT Logo.png" alt="RJIT Logo" class="w-36 h-36 object-contain mx-auto md:mx-0" onerror="this.onerror=null;this.src='https://placehold.co/144x144/FCD34D/1D4ED8?text=RJIT';" />
+            <img src="img/RJIT Logo.png" alt="RJIT Logo" class="w-36 h-36 object-contain mx-auto md:mx-0" onerror="this.onerror=null;this.src='https://placehold.co/144x144/FCD34D/1D4ED8?text=RJIT';" />
           </div>
           <div class="flex-1 text-center md:text-center">
             <h1 class="text-5xl md:text-6xl font-extrabold mb-3">Abhivyakti Club</h1>
@@ -229,7 +229,7 @@
             <p class="text-lg text-blue-100">Welcome to the official website of the Abhivyakti Club at Rustamji Institute of Technology!</p>
           </div>
           <div class="flex-shrink-0">
-            <img src="image/Abhivyakti Logo.png" alt="Abhivyakti Club Logo" class="w-36 h-36 object-contain mx-auto md:mx-0" onerror="this.onerror=null;this.src='https://placehold.co/144x144/FCD34D/1D4ED8?text=ABHIVYAKTI';" />
+            <img src="img/Abhivyakti Logo.png" alt="Abhivyakti Club Logo" class="w-36 h-36 object-contain mx-auto md:mx-0" onerror="this.onerror=null;this.src='https://placehold.co/144x144/FCD34D/1D4ED8?text=ABHIVYAKTI';" />
           </div>
         </div>
       </section>
@@ -473,7 +473,12 @@
           <p class="text-center text-gray-700 mb-8">User ID: <span id="admin-user-id" class="font-bold text-blue-700"></span></p>
 
           <div id="admin-content-wrapper" class="bg-white p-8 rounded-xl shadow-lg">
-            <!-- Login Form or Admin Content will be loaded here by JS -->
+            <!-- Admin Content will be loaded here by JS after Firebase Auth -->
+            <div class="text-center text-gray-600 text-xl py-8" id="admin-loading-message">
+                Loading admin panel...
+            </div>
+            <!-- Message box for admin actions -->
+            <div id="admin-message-box" class="mt-4 p-3 rounded-md text-center text-sm hidden"></div>
           </div>
         </div>
       </section>
@@ -484,7 +489,7 @@
   <!-- Image Modal View (for Home Page Gallery) -->
   <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-80 hidden flex-col justify-center items-center z-[100]">
     <button id="closeImageModalBtn" class="absolute top-4 right-6 text-white text-5xl cursor-pointer" aria-label="Close modal">×</button>
-    <img id="modalImage" class="max-w-[90%] max-h-[80%] md:max-h-[90%] rounded-lg shadow-2xl object-contain" />
+    <img id="modalImage" class="max-w-[90%] max-h-[80%] md:max-h-[90%] rounded-lg shadow-2xl object-contain" onerror="this.onerror=null;this.src='https://placehold.co/800x500/FCD34D/1D4ED8?text=Image';" />
     <div id="modalImageCaption" class="text-white text-lg md:text-xl mt-4 text-center px-4"></div>
   </div>
 
@@ -537,59 +542,47 @@
     </div>
   </footer>
 
-  <!-- JavaScript -->
-  <script>
-    // --- Global Data (Simulated Backend) ---
-    // This data will NOT persist across page refreshes.
-    // In a real application, this would be fetched from a database like Firebase.
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // --- Global Data (Local Cache, populated from Firestore) ---
     let appData = {
-      photos: [
-        { id: 'p1', imageUrl: 'img/Principal_Sir.jpg', altText: 'Principal Sir at Orientation 2024', timestamp: '2024-08-01T10:00:00Z' },
-        { id: 'p2', imageUrl: 'img/IMG-20250419-WA0052.jpg', altText: 'Public Speaking Event', timestamp: '2025-04-19T11:00:00Z' },
-        { id: 'p3', imageUrl: 'img/Image 2024-11-26 at 17.38.36_f832106b (1).jpg', altText: 'Mock Parliament Session', timestamp: '2024-11-26T17:38:36Z' },
-        { id: 'p4', imageUrl: 'img/IMG-20250419-WA0069.jpg', altText: 'RJ Talks 3.0 Audience', timestamp: '2025-04-19T12:00:00Z' },
-        { id: 'p5', imageUrl: 'img/IMG-20250425-WA0011.jpg', altText: 'RJ Talks 3.0 Speaker', timestamp: '2025-04-25T10:00:00Z' },
-        { id: 'p6', imageUrl: 'img/IMG-20250425-WA0018.jpg', altText: 'RJ Talks 3.0 Stage', timestamp: '2025-04-25T10:30:00Z' },
-        { id: 'p7', imageUrl: 'img/IMG-20250419-WA0057.jpg', altText: 'RJ Talks 3.0 Interaction', timestamp: '2025-04-19T13:00:00Z' },
-        { id: 'p8', imageUrl: 'img/IMG-20250419-WA0024.jpg', altText: 'RJ Talks 3.0 Participants', timestamp: '2025-04-19T14:00:00Z' },
-        { id: 'p9', imageUrl: 'img/IMG_20241130_145518_565 (1).jpg', altText: 'Club Meeting', timestamp: '2024-11-30T14:55:18Z' },
-      ],
-      notices: [
-        { id: 'n1', message: 'The next club orientation will be held on August 5th at 3:00 PM in the seminar hall. Be on time!', timestamp: '2025-07-15T09:00:00Z' },
-        { id: 'n2', message: 'Debate competition registrations open from July 20th to July 30th.', timestamp: '2025-07-10T10:00:00Z' }
-      ],
-      upcomingEvents: [
-        { id: 'ue1', name: 'Communication Skills Workshop', date: 'August 2025', description: 'A comprehensive workshop focusing on verbal and non-verbal communication techniques.', timestamp: '2025-07-01T00:00:00Z' },
-        { id: 'ue2', name: 'RJIT Annual Fest Debate Competition', date: 'October 2025', description: 'Annual debate competition during the college fest, open to all students.', timestamp: '2025-07-01T00:00:00Z' }
-      ],
-      pastEvents: [
-        { id: 'pe1', title: 'Extempore Session 2024', description: 'Our annual Extempore session helps students master spontaneous thinking and public speaking. Participants tackle diverse topics with minimal preparation, boosting their confidence and quick-wittedness. It\'s a fantastic way to develop on-the-spot articulation skills!', imageUrl: 'images/extempore2024.jpg', date: 'Dec 2024' },
-        { id: 'pe2', title: 'Group Discussion Roundtable', description: 'This engaging roundtable hones analytical and verbal articulation skills. Members dive into structured discussions on current affairs and pressing topics, fostering critical thinking, respectful debate, and collaborative problem-solving. It\'s ideal for refining communication in a team setting.', imageUrl: 'images/group_discussion.jpg', date: 'Nov 2024' },
-        { id: 'pe3', title: 'Personality Development Series', description: 'A comprehensive workshop series designed to enhance holistic personal growth. Modules cover effective public speaking, impactful body language, grooming tips, and strategies for self-motivation and confidence building. Participants gain valuable insights for both personal and professional spheres.', imageUrl: 'images/personality_dev.jpg', date: 'Sep 2024' },
-        { id: 'pe4', title: 'Intercollege Debate Competition', description: 'A highlight of RJIT Fest 2024, this spirited debate competition gathered talented teams from various colleges. They fiercely contended on a range of socio-political and ethical subjects, promoting intellectual discourse, competitive spirit, and broadening perspectives on contemporary issues.', imageUrl: 'img/Equolenza.jpg', date: 'Mar 2024' }
-      ],
-      teamMembers: [
-        { id: 'tm1', name: 'Leut. Dr. Yogita Verma', role: 'Faculty Coordinator', description: 'Faculty member guiding the strategic direction and functioning of the Abhivyakti Club. Supports all student-led initiatives with dedication and expertise.', imageUrl: 'images/faculty.jpg', category: 'faculty', order: 1 },
-        { id: 'tm2', name: 'Mr. Sahil Kumar', role: 'Chief Coordinator', description: 'The visionary lead of Abhivyakti Club, guiding and mentoring students with a clear vision for holistic personality development and club growth.', imageUrl: 'images/chief.jpg', category: 'chief', order: 1 },
-        { id: 'tm3', name: 'Mr. Ankit Singh', role: 'Secretary', description: 'Responsible for planning and coordination of club activities. Leads communication training and organizes modules.', imageUrl: 'img/Ankit.jpg', category: 'secretary_treasurer', order: 1 },
-        { id: 'tm4', name: 'Mr. Ekam Soni', role: 'Treasurer', description: 'Manages the club\'s finances, budgeting for events and ensuring smooth financial operation of Abhivyakti.', imageUrl: 'img/ekam.jpg', category: 'secretary_treasurer', order: 2 },
-        { id: 'tm5', name: 'Mr. Ankush', role: 'Module Coordinator', description: 'Coordinates various learning modules.', imageUrl: 'img/ankush.jpg', category: 'section_coordinator', order: 1 },
-        { id: 'tm6', name: 'Mrs. Venya Gupta', role: 'Extempore Lead', description: 'Leads extempore training sessions.', imageUrl: 'img/IMG-20250614-WA0001.jpg', category: 'section_coordinator', order: 2 },
-        { id: 'tm7', name: 'Mr. Mukund Jha', role: 'Event Coordinator', description: 'Organizes and manages club events.', imageUrl: 'images/event_manager.jpg', category: 'section_coordinator', order: 3 },
-        { id: 'tm8', name: 'Mr. Amit Kumar', role: 'Event Coordinator', description: 'Assists in event planning and execution.', imageUrl: 'images/event_manager.jpg', category: 'section_coordinator', order: 4 },
-        { id: 'tm9', name: 'Mr. MD Arbazz', role: 'Event Coordinator', description: 'Supports event logistics and coordination.', imageUrl: 'images/event_manager.jpg', category: 'section_coordinator', order: 5 },
-        { id: 'tm10', name: 'Mr. Sahil Singh', role: 'Event Coordinator', description: 'Helps in managing event operations.', imageUrl: 'images/event_manager.jpg', category: 'section_coordinator', order: 6 },
-      ]
+      photos: [],
+      notices: [],
+      upcomingEvents: [],
+      pastEvents: [],
+      teamMembers: []
     };
 
-    // --- DOM Elements ---
+    // --- Global Firebase Variables (Provided by Canvas Environment) ---
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+    // --- Firebase App Initialization ---
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let currentUserId = null; // To store the authenticated user ID (from Firebase)
+    let isAdminLoggedIn = false; // Flag for admin authorization (now controlled by simulated login)
+    let isAuthReady = false; // Flag to indicate Firebase Auth is ready
+
+    // Simulated Admin Credentials (for client-side login)
+    const ADMIN_USERNAME = 'admin';
+    const ADMIN_PASSWORD = 'password123';
+
+
+    // --- DOM Elements (Global References) ---
     const pageSections = document.querySelectorAll('.page-section');
     const navLinks = document.querySelectorAll('nav a[data-page]');
     const mobileMenuButton = document.getElementById('mobileMenuButton');
     const mobileMenu = document.getElementById('mobileMenu');
     const scrollToTopBtn = document.getElementById('scrollToTopBtn');
 
-    // Home Page Elements
     const sliderTrack = document.createElement('div');
     sliderTrack.id = 'sliderTrack';
     sliderTrack.className = 'flex transition-transform duration-700 ease-in-out';
@@ -600,157 +593,189 @@
     const photoGalleryContent = document.getElementById('photo-gallery-content');
     const noticeContent = document.getElementById('notice-content');
 
-    // Image Modal Elements
     const imageModal = document.getElementById('imageModal');
     const modalImage = document.getElementById('modalImage');
     const modalImageCaption = document.getElementById('modalImageCaption');
     const closeImageModalBtn = document.getElementById('closeImageModalBtn');
 
-    // Events Page Elements
     const upcomingEventsList = document.getElementById('upcomingEventsList');
     const noUpcomingEventsMessage = document.getElementById('noUpcomingEventsMessage');
     const pastEventsGrid = document.getElementById('pastEventsGrid');
 
-    // Event Detail Modal Elements
     const eventDetailModal = document.getElementById('eventDetailModal');
     const eventModalTitle = document.getElementById('eventModalTitle');
     const eventModalContent = document.getElementById('eventModalContent');
     const closeEventDetailModalBtn = document.getElementById('closeEventDetailModalBtn');
 
-    // Team Page Elements
     const facultyMembersGrid = document.getElementById('faculty-members-grid');
     const chiefMembersGrid = document.getElementById('chief-members-grid');
     const secretaryTreasurerMembersGrid = document.getElementById('secretary-treasurer-members-grid');
     const sectionCoordinatorsGrid = document.getElementById('section-coordinators-grid');
 
-    // Admin Panel Elements
-    // These elements are queried dynamically within renderAdminPanelContent
-    // const adminTabButtons = document.querySelectorAll('.admin-tab-btn'); // Moved inside renderAdminPanelContent
-    // const adminForm = document.getElementById('admin-form'); // Moved inside renderAdminPanelContent
-    // const adminFormTitle = document.getElementById('admin-form-title'); // Moved inside renderAdminPanelContent
-    // const adminListContent = document.getElementById('admin-list-content'); // Moved inside renderAdminPanelContent
     const adminUserIdSpan = document.getElementById('admin-user-id');
-    const adminContentWrapper = document.getElementById('admin-content-wrapper'); // New wrapper for conditional rendering
+    const adminContentWrapper = document.getElementById('admin-content-wrapper');
+    const adminLoadingMessage = document.getElementById('admin-loading-message'); // New loading message element
+    const adminMessageBox = document.getElementById('admin-message-box'); // New message box element
 
     let currentSlideIndex = 0;
     let autoSlideInterval;
     let isSliderPaused = false;
     let currentAdminTab = 'photos'; // Default admin tab
     let editingItemId = null; // For admin panel edit mode
-    let isAdminLoggedIn = false; // New state for admin authorization
 
-    // --- Admin Authorization Logic ---
-    const ADMIN_USERNAME = 'admin'; // Hardcoded username
-    const ADMIN_PASSWORD = 'password123'; // Hardcoded password
 
-    function checkAdminLoginStatus() {
-      // Check sessionStorage for login status
-      isAdminLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
-      renderAdminPanelContent(); // Render content based on status
-    }
-
-    function renderAdminLoginForm() {
-      adminContentWrapper.innerHTML = `
-        <div class="max-w-md mx-auto p-8 bg-white rounded-xl shadow-lg mt-10">
-          <h3 class="text-2xl font-bold text-blue-700 mb-6 text-center">Admin Login</h3>
-          <form id="admin-login-form" class="space-y-4">
-            <div>
-              <label for="admin-username" class="block text-gray-700 text-sm font-bold mb-2">Username:</label>
-              <input type="text" id="admin-username" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-            </div>
-            <div>
-              <label for="admin-password" class="block text-gray-700 text-sm font-bold mb-2">Password:</label>
-              <input type="password" id="admin-password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" required>
-            </div>
-            <p id="login-error-message" class="text-red-500 text-sm text-center hidden">Invalid username or password.</p>
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">
-              Login
-            </button>
-          </form>
-        </div>
-      `;
-
-      document.getElementById('admin-login-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const username = document.getElementById('admin-username').value;
-        const password = document.getElementById('admin-password').value;
-        const errorMessage = document.getElementById('login-error-message');
-
-        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-          isAdminLoggedIn = true;
-          sessionStorage.setItem('adminLoggedIn', 'true'); // Store login status
-          errorMessage.classList.add('hidden');
-          renderAdminPanelContent(); // Render actual admin content
-        } else {
-          errorMessage.classList.remove('hidden');
-        }
-      });
-    }
-
-    function renderAdminPanelContent() {
-      if (isAdminLoggedIn) {
-        adminContentWrapper.innerHTML = `
-          <div class="flex flex-wrap justify-center gap-4 mb-8 border-b pb-4">
-            <button data-tab="photos" class="admin-tab-btn px-4 py-2 rounded-full text-lg font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300">Photos</button>
-            <button data-tab="upcomingEvents" class="admin-tab-btn px-4 py-2 rounded-full text-lg font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300">Upcoming Events</button>
-            <button data-tab="pastEvents" class="admin-tab-btn px-4 py-2 rounded-full text-lg font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300">Past Events</button>
-            <button data-tab="teamMembers" class="admin-tab-btn px-4 py-2 rounded-full text-lg font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300">Team Members</button>
-            <button data-tab="notices" class="admin-tab-btn px-4 py-2 rounded-full text-lg font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300">Notices</button>
-          </div>
-
-          <h3 class="text-2xl font-bold text-blue-700 mb-4" id="admin-form-title">Add/Edit Item</h3>
-          <form id="admin-form" class="space-y-4">
-            <!-- Form fields will be dynamically loaded here -->
-          </form>
-
-          <h3 class="text-2xl font-bold text-blue-700 mt-8 mb-4" id="admin-list-title">Current Items</h3>
-          <div id="admin-list-content">
-            <!-- List of items will be dynamically loaded here -->
-          </div>
-          <button id="admin-logout-btn" class="mt-8 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">Logout</button>
-        `;
-
-        // Re-attach event listeners for newly rendered elements
-        // Query elements AFTER they have been added to the DOM
-        const adminTabButtons = document.querySelectorAll('.admin-tab-btn');
-        const adminForm = document.getElementById('admin-form'); // Get reference after rendering
-        const adminListContent = document.getElementById('admin-list-content'); // Get reference after rendering
-        const adminFormTitle = document.getElementById('admin-form-title'); // Get reference after rendering
-
-        adminTabButtons.forEach(button => {
-          button.addEventListener('click', () => {
-            adminTabButtons.forEach(btn => btn.classList.remove('bg-blue-700', 'text-yellow-400'));
-            button.classList.add('bg-blue-700', 'text-yellow-400');
-            currentAdminTab = button.dataset.tab;
-            resetAdminForm(); // Reset form when changing tabs
-            renderAdminList();
-          });
-        });
-        document.getElementById('admin-logout-btn').addEventListener('click', adminLogout);
-
-        // Ensure the correct tab is active on re-render
-        document.querySelector(`.admin-tab-btn[data-tab="${currentAdminTab}"]`).classList.add('bg-blue-700', 'text-yellow-400');
-        renderAdminForm(); // Now these functions can safely access the form/list elements
-        renderAdminList();
-
+    // --- Firebase Authentication State Listener ---
+    // This listener is primarily for initializing Firebase and getting a 'currentUserId'
+    // for Firestore operations. The 'isAdminLoggedIn' state is now managed by the simulated login.
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUserId = user.uid;
+        console.log("Firebase Auth: User logged in (for Firestore operations):", currentUserId);
       } else {
-        renderAdminLoginForm();
+        currentUserId = null;
+        console.log("Firebase Auth: User logged out or anonymous.");
+      }
+      isAuthReady = true;
+      // After auth state is determined, load data
+      loadAllDataFromFirestore();
+      // Render admin panel content based on simulated login status
+      renderAdminPanelContent();
+    });
+
+    // --- Initial Firebase Authentication ---
+    async function initializeAuth() {
+      try {
+        if (initialAuthToken) {
+          await signInWithCustomToken(auth, initialAuthToken);
+          console.log("Signed in with custom token.");
+        } else {
+          await signInAnonymously(auth);
+          console.log("Signed in anonymously.");
+        }
+      } catch (error) {
+        console.error("Firebase Auth Error during initialization:", error);
+        // If custom token fails, try anonymous or show error to user
+        try {
+            await signInAnonymously(auth);
+            console.log("Attempted anonymous sign-in after custom token failure.");
+        } catch (anonError) {
+            console.error("Anonymous sign-in failed:", anonError);
+            // Inform user if authentication fails
+            if (adminLoadingMessage) {
+              adminLoadingMessage.textContent = "Authentication failed. Please try again later.";
+              adminLoadingMessage.classList.add('text-red-500');
+            }
+        }
       }
     }
 
-    function adminLogout() {
-      isAdminLoggedIn = false;
-      sessionStorage.removeItem('adminLoggedIn'); // Clear login status
-      renderAdminPanelContent(); // Show login form
-      showPage('home-page'); // Redirect to home page
+    // --- Admin Message Box Functions ---
+    function showMessage(message, type = 'success') {
+        // Ensure adminMessageBox is available (it might not be if adminContentWrapper hasn't rendered it yet)
+        const msgBox = document.getElementById('admin-message-box');
+        if (!msgBox) return;
+
+        msgBox.textContent = message;
+        msgBox.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700', 'bg-blue-100', 'text-blue-700');
+        if (type === 'success') {
+            msgBox.classList.add('bg-green-100', 'text-green-700');
+        } else if (type === 'error') {
+            msgBox.classList.add('bg-red-100', 'text-red-700');
+        } else if (type === 'info') {
+            msgBox.classList.add('bg-blue-100', 'text-blue-700');
+        }
+        setTimeout(clearMessage, 5000); // Hide message after 5 seconds
+    }
+
+    function clearMessage() {
+        const msgBox = document.getElementById('admin-message-box');
+        if (!msgBox) return;
+        msgBox.classList.add('hidden');
+        msgBox.textContent = '';
+    }
+
+    // --- Firestore Data Loading ---
+    function loadCollection(collectionName) {
+      if (!isAuthReady) {
+        console.log(`Auth not ready. Skipping load for ${collectionName}.`);
+        return;
+      }
+
+      const colRef = collection(db, 'artifacts', appId, 'public', 'data', collectionName);
+      onSnapshot(colRef, (snapshot) => {
+        const items = [];
+        snapshot.forEach(doc => {
+          items.push({ id: doc.id, ...doc.data() });
+        });
+        // Sort items based on timestamp or order for consistency
+        if (collectionName === 'photos' || collectionName === 'notices' || collectionName === 'upcomingEvents' || collectionName === 'pastEvents') {
+          items.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        } else if (collectionName === 'teamMembers') {
+          items.sort((a, b) => a.order - b.order);
+        }
+        appData[collectionName] = items;
+        console.log(`Loaded ${collectionName}:`, appData[collectionName]);
+        updateAllPages(); // Re-render pages after data loads
+      }, (error) => {
+        console.error(`Error loading ${collectionName}:`, error);
+        showMessage(`Error loading ${collectionName} data.`, 'error');
+      });
+    }
+
+    function loadAllDataFromFirestore() {
+      loadCollection('photos');
+      loadCollection('notices');
+      loadCollection('upcomingEvents');
+      loadCollection('pastEvents');
+      loadCollection('teamMembers');
+    }
+
+    // --- Firestore Data Saving/Deleting ---
+    async function saveItemToFirestore(collectionName, item) {
+      if (!isAdminLoggedIn) { // Only allow if current user is an admin
+        console.error("Access Denied: Only administrators can save data.");
+        showMessage("Access Denied: You are not authorized to save data.", 'error');
+        return;
+      }
+      try {
+        const colRef = collection(db, 'artifacts', appId, 'public', 'data', collectionName);
+        if (item.id) { // If item has an ID, it's an update
+          const docRef = doc(db, 'artifacts', appId, 'public', 'data', collectionName, item.id);
+          // Remove the 'id' field from the data when using setDoc with merge, as 'id' is the document ID itself.
+          const { id, ...dataToSave } = item;
+          await setDoc(docRef, dataToSave, { merge: true });
+          console.log(`Updated item in ${collectionName}: ${item.id}`);
+          showMessage(`${collectionName.slice(0, -1)} updated successfully!`, 'success');
+        } else { // If no ID, it's a new item
+          await addDoc(colRef, item); // Firestore generates ID
+          console.log(`Added new item to ${collectionName}`);
+          showMessage(`${collectionName.slice(0, -1)} added successfully!`, 'success');
+        }
+      } catch (e) {
+        console.error("Error saving document: ", e);
+        showMessage(`Error saving ${collectionName.slice(0, -1)}: ${e.message}`, 'error');
+      }
+    }
+
+    async function deleteItemFromFirestore(collectionName, itemId) {
+      if (!isAdminLoggedIn) { // Only allow if current user is an admin
+        console.error("Access Denied: Only administrators can delete data.");
+        showMessage("Access Denied: You are not authorized to delete data.", 'error');
+        return;
+      }
+      if (!confirm('Are you sure you want to delete this item?')) return; // Using confirm for simplicity in this demo
+
+      try {
+        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', collectionName, itemId));
+        console.log(`Deleted item ${itemId} from ${collectionName}`);
+        showMessage(`${collectionName.slice(0, -1)} deleted successfully!`, 'success');
+      } catch (e) {
+        console.error("Error deleting document: ", e);
+        showMessage(`Error deleting ${collectionName.slice(0, -1)}: ${e.message}`, 'error');
+      }
     }
 
     // --- Utility Functions ---
-
-    // Function to generate a unique ID (for simulated backend)
-    function generateUniqueId() {
-      return Date.now().toString(36) + Math.random().toString(36).substring(2);
-    }
 
     // Function to show a specific page and hide others
     function showPage(pageId) {
@@ -761,7 +786,7 @@
 
       // Update active class on navbar links
       navLinks.forEach(link => {
-        if (link.dataset.page === pageId) {
+        if (link.dataset.page === pageId.replace('-page', '')) {
           link.classList.add('font-bold', 'text-yellow-300');
         } else {
           link.classList.remove('font-bold', 'text-yellow-300');
@@ -1033,11 +1058,129 @@
 
     // --- Admin Panel Logic ---
 
+    function renderAdminLoginForm() {
+      adminContentWrapper.innerHTML = `
+        <div class="max-w-md mx-auto p-8 bg-white rounded-xl shadow-lg mt-10">
+          <h3 class="text-2xl font-bold text-blue-700 mb-6 text-center">Admin Login</h3>
+          <form id="admin-login-form" class="space-y-4">
+            <div>
+              <label for="admin-username" class="block text-gray-700 text-sm font-bold mb-2">Username:</label>
+              <input type="text" id="admin-username" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div>
+              <label for="admin-password" class="block text-gray-700 text-sm font-bold mb-2">Password:</label>
+              <input type="password" id="admin-password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <p id="login-error-message" class="text-red-500 text-sm text-center hidden">Invalid username or password.</p>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">
+              Login
+            </button>
+          </form>
+        </div>
+      `;
+
+      document.getElementById('admin-login-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('admin-username').value;
+        const password = document.getElementById('admin-password').value;
+        const errorMessage = document.getElementById('login-error-message');
+
+        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+          isAdminLoggedIn = true;
+          sessionStorage.setItem('adminLoggedIn', 'true'); // Store login status
+          errorMessage.classList.add('hidden');
+          adminUserIdSpan.textContent = 'Simulated Admin'; // Update user ID display
+          renderAdminPanelContent(); // Render actual admin content
+          showMessage("Logged in successfully as Admin!", 'success');
+        } else {
+          errorMessage.classList.remove('hidden');
+          showMessage("Invalid username or password.", 'error');
+        }
+      });
+    }
+
+    function renderAdminPanelContent() {
+      if (adminLoadingMessage) {
+        adminLoadingMessage.classList.add('hidden'); // Hide loading message once content is ready
+      }
+
+      // Check sessionStorage for login status when rendering admin panel
+      if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+        isAdminLoggedIn = true;
+        adminUserIdSpan.textContent = 'Simulated Admin'; // Update user ID display
+      } else {
+        isAdminLoggedIn = false;
+      }
+
+      if (isAdminLoggedIn) {
+        adminContentWrapper.innerHTML = `
+          <div class="flex flex-wrap justify-center gap-4 mb-8 border-b pb-4">
+            <button data-tab="photos" class="admin-tab-btn px-4 py-2 rounded-full text-lg font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300">Photos</button>
+            <button data-tab="upcomingEvents" class="admin-tab-btn px-4 py-2 rounded-full text-lg font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300">Upcoming Events</button>
+            <button data-tab="pastEvents" class="admin-tab-btn px-4 py-2 rounded-full text-lg font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300">Past Events</button>
+            <button data-tab="teamMembers" class="admin-tab-btn px-4 py-2 rounded-full text-lg font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300">Team Members</button>
+            <button data-tab="notices" class="admin-tab-btn px-4 py-2 rounded-full text-lg font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300">Notices</button>
+          </div>
+
+          <h3 class="text-2xl font-bold text-blue-700 mb-4" id="admin-form-title">Add/Edit Item</h3>
+          <form id="admin-form" class="space-y-4">
+            <!-- Form fields will be dynamically loaded here -->
+          </form>
+
+          <h3 class="text-2xl font-bold text-blue-700 mt-8 mb-4" id="admin-list-title">Current Items</h3>
+          <div id="admin-list-content">
+            <!-- List of items will be dynamically loaded here -->
+          </div>
+          <button id="admin-logout-btn" class="mt-8 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">Logout</button>
+          <div id="admin-message-box" class="mt-4 p-3 rounded-md text-center text-sm hidden"></div>
+        `;
+
+        // Re-attach event listeners for newly rendered elements
+        const adminTabButtons = document.querySelectorAll('.admin-tab-btn');
+        const adminForm = document.getElementById('admin-form'); // Get reference after rendering
+        const adminListContent = document.getElementById('admin-list-content'); // Get reference after rendering
+        const adminFormTitle = document.getElementById('admin-form-title'); // Get reference after rendering
+
+        adminTabButtons.forEach(button => {
+          button.addEventListener('click', () => {
+            adminTabButtons.forEach(btn => btn.classList.remove('bg-blue-700', 'text-yellow-400'));
+            button.classList.add('bg-blue-700', 'text-yellow-400');
+            currentAdminTab = button.dataset.tab;
+            resetAdminForm(); // Reset form when changing tabs
+            renderAdminList();
+            clearMessage(); // Clear messages when changing tabs
+          });
+        });
+        document.getElementById('admin-logout-btn').addEventListener('click', adminLogout);
+
+        // Ensure the correct tab is active on re-render
+        document.querySelector(`.admin-tab-btn[data-tab="${currentAdminTab}"]`).classList.add('bg-blue-700', 'text-yellow-400');
+        renderAdminForm(); // Now these functions can safely access the form/list elements
+        renderAdminList();
+
+      } else {
+        // If not logged in, show the login form
+        renderAdminLoginForm();
+      }
+    }
+
+    function adminLogout() {
+      isAdminLoggedIn = false;
+      sessionStorage.removeItem('adminLoggedIn'); // Clear login status
+      renderAdminPanelContent(); // Show login form
+      showPage('home-page'); // Redirect to home page
+      showMessage("Logged out successfully.", 'info');
+    }
+
     // Render form fields based on active tab
     function renderAdminForm() {
-      // Get references to elements within the adminContentWrapper
       const adminForm = document.getElementById('admin-form');
       const adminFormTitle = document.getElementById('admin-form-title');
+
+      if (!adminForm || !adminFormTitle) {
+          console.error("Admin form elements not found. Cannot render form.");
+          return;
+      }
 
       let formHtml = '';
       let currentItem = {};
@@ -1133,47 +1276,50 @@
     function resetAdminForm() {
       editingItemId = null;
       renderAdminForm(); // Re-render form to clear fields
+      clearMessage(); // Clear messages on form reset
     }
 
     // Handle admin form submission (Add/Edit)
-    function handleAdminFormSubmit(tab) {
+    async function handleAdminFormSubmit(tab) {
+      if (!isAdminLoggedIn) {
+        console.error("Admin not logged in. Cannot submit form.");
+        showMessage("Access Denied: You are not authorized to perform this action.", 'error');
+        return;
+      }
       let newItem = {};
-      let collectionArray;
+      let collectionName;
 
       switch (tab) {
         case 'photos':
+          collectionName = 'photos';
           newItem = {
-            id: editingItemId || generateUniqueId(),
             imageUrl: document.getElementById('photo-imageUrl').value,
             altText: document.getElementById('photo-altText').value,
             timestamp: new Date().toISOString()
           };
-          collectionArray = appData.photos;
           break;
         case 'upcomingEvents':
+          collectionName = 'upcomingEvents';
           newItem = {
-            id: editingItemId || generateUniqueId(),
             name: document.getElementById('upcomingEvent-name').value,
             date: document.getElementById('upcomingEvent-date').value,
             description: document.getElementById('upcomingEvent-description').value,
             timestamp: new Date().toISOString()
           };
-          collectionArray = appData.upcomingEvents;
           break;
         case 'pastEvents':
+          collectionName = 'pastEvents';
           newItem = {
-            id: editingItemId || generateUniqueId(),
             title: document.getElementById('pastEvent-title').value,
             imageUrl: document.getElementById('pastEvent-imageUrl').value,
             date: document.getElementById('pastEvent-date').value,
             description: document.getElementById('pastEvent-description').value,
             timestamp: new Date().toISOString()
           };
-          collectionArray = appData.pastEvents;
           break;
         case 'teamMembers':
+          collectionName = 'teamMembers';
           newItem = {
-            id: editingItemId || generateUniqueId(),
             name: document.getElementById('teamMember-name').value,
             role: document.getElementById('teamMember-role').value,
             description: document.getElementById('teamMember-description').value,
@@ -1182,63 +1328,62 @@
             order: parseInt(document.getElementById('teamMember-order').value) || 0,
             timestamp: new Date().toISOString()
           };
-          collectionArray = appData.teamMembers;
           break;
         case 'notices':
+          collectionName = 'notices';
           newItem = {
-            id: editingItemId || generateUniqueId(),
             message: document.getElementById('notice-message').value,
             timestamp: new Date().toISOString()
           };
-          collectionArray = appData.notices;
           break;
       }
 
+      // If editing an existing item, include its Firestore ID
       if (editingItemId) {
-        // Update existing item
-        const index = collectionArray.findIndex(item => item.id === editingItemId);
-        if (index !== -1) {
-          collectionArray[index] = newItem;
-        }
-      } else {
-        // Add new item
-        collectionArray.push(newItem);
+        newItem.id = editingItemId; // Add the Firestore document ID for update operation
       }
 
-      // Sort data if necessary (e.g., photos by timestamp, team members by order)
-      if (tab === 'photos' || tab === 'notices' || tab === 'upcomingEvents' || tab === 'pastEvents') {
-        collectionArray.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-      } else if (tab === 'teamMembers') {
-        collectionArray.sort((a, b) => a.order - b.order);
+      try {
+        await saveItemToFirestore(collectionName, newItem);
+        resetAdminForm(); // Clear form and exit edit mode
+        // Data will be re-rendered by the onSnapshot listener
+      } catch (error) {
+        console.error("Error submitting admin form:", error);
+        showMessage(`Failed to save ${collectionName.slice(0, -1)}: ${error.message}`, 'error');
       }
-
-      resetAdminForm(); // Clear form and exit edit mode
-      renderAdminList(); // Re-render list
-      updateAllPages(); // Update relevant pages
     }
 
     // Handle admin item deletion
-    function handleAdminDelete(idToDelete) {
+    async function handleAdminDelete(idToDelete) {
+      if (!isAdminLoggedIn) {
+        console.error("Admin not logged in. Cannot delete item.");
+        showMessage("Access Denied: You are not authorized to perform this action.", 'error');
+        return;
+      }
       if (!confirm('Are you sure you want to delete this item?')) return;
 
-      let collectionArray;
+      let collectionName;
       switch (currentAdminTab) {
-        case 'photos': collectionArray = appData.photos; break;
-        case 'upcomingEvents': collectionArray = appData.upcomingEvents; break;
-        case 'pastEvents': collectionArray = appData.pastEvents; break;
-        case 'teamMembers': collectionArray = appData.teamMembers; break;
-        case 'notices': collectionArray = appData.notices; break;
+        case 'photos': collectionName = 'photos'; break;
+        case 'upcomingEvents': collectionName = 'upcomingEvents'; break;
+        case 'pastEvents': collectionName = 'pastEvents'; break;
+        case 'teamMembers': collectionName = 'teamMembers'; break;
+        case 'notices': collectionName = 'notices'; break;
       }
 
-      appData[currentAdminTab] = collectionArray.filter(item => item.id !== idToDelete);
-      renderAdminList(); // Re-render list
-      updateAllPages(); // Update relevant pages
+      try {
+        await deleteItemFromFirestore(collectionName, idToDelete);
+        // Data will be re-rendered by the onSnapshot listener
+      } catch (error) {
+        console.error("Error deleting item:", error);
+        showMessage(`Failed to delete ${collectionName.slice(0, -1)}: ${error.message}`, 'error');
+      }
     }
 
     // Render list of items for the current admin tab
     function renderAdminList() {
-      // Get reference to the list content container
       const adminListContent = document.getElementById('admin-list-content');
+      if (!adminListContent) return; // Ensure element exists before trying to manipulate it
 
       adminListContent.innerHTML = '';
       let items = appData[currentAdminTab];
@@ -1358,19 +1503,20 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
-    // Admin panel tab switching - these listeners will be re-attached when admin content is rendered
-    // No need to query `adminTabButtons` here directly as they might not exist yet.
-
     // --- Initial Page Load ---
     document.addEventListener('DOMContentLoaded', () => {
-      // Check login status and render appropriate admin panel content
-      checkAdminLoginStatus();
+      // Initialize Firebase Auth (for data loading/saving)
+      initializeAuth();
 
-      // Render initial content for all public-facing pages
-      updateAllPages();
+      // Render admin panel content based on sessionStorage (simulated login)
+      renderAdminPanelContent();
 
-      // Simulate a user ID for the admin panel (can be displayed regardless of login)
-      adminUserIdSpan.textContent = 'SIMULATED_USER_ID_12345';
+      // Set initial user ID display
+      if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+        adminUserIdSpan.textContent = 'Simulated Admin';
+      } else {
+        adminUserIdSpan.textContent = 'Not Logged In (Please log in to Admin)';
+      }
     });
   </script>
 </body>
