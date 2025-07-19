@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Abhivyakti Club</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+
+    /* General Page/Section Styles */
+    .page-section {
+      display: none; /* Hidden by default, shown by JS */
+    }
+    .page-section.active {
+      display: block;
+    }
+
+    /* Navbar Specific Styles */
+    .mobile-menu {
+      display: none; /* Hidden by default */
+      flex-direction: column;
+      position: absolute;
+      top: 100%; /* Position below the navbar */
+      left: 0;
+      width: 100%;
+      background-color: #1d4ed8; /* blue-700 */
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 1rem 0;
+      z-index: 45; /* Above other content, below sticky navbar */
+    }
+    .mobile-menu.active {
+      display: flex; /* Show when active */
+    }
+    .mobile-menu li {
+      width: 100%;
+      text-align: center;
+      padding: 0.5rem 0;
+    }
+    .mobile-menu li a {
+      display: block;
+      padding: 0.5rem 1rem;
+      color: #fcd34d;
+      transition: background-color 0.2s ease;
+    }
+    .mobile-menu li a:hover {
+      background-color: #1e40af; /* blue-800 */
+    }
+
+    /* Home Page Slider Styles */
+    .slider-track {
+      display: flex;
+      transition: transform 0.7s ease-in-out;
+    }
+    .slider-track img {
+      height: 400px; /* Default height for smaller screens */
+      object-fit: cover;
+      flex-shrink: 0; /* Prevent images from shrinking */
+      width: 100%; /* Ensure images take full width of container */
+    }
+    @media (min-width: 768px) { /* md breakpoint */
+      .slider-track img {
+        height: 500px; /* Taller on larger screens */
+      }
+    }
+    .dot {
+      height: 12px;
+      width: 12px;
+      margin: 0 4px;
+      background-color: #bbbbbb;
+      border-radius: 50%;
+      display: inline-block;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .dot.active {
+      background-color: #1d4ed8; /* Tailwind's blue-700 */
+    }
+    .thumbnail {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.3s ease, transform 0.2s ease;
+      border-radius: 0.5rem; /* Rounded corners for thumbnails */
+    }
+    .thumbnail.active {
+      border-color: #1d4ed8;
+      transform: scale(1.05);
+    }
+    .thumbnail:hover {
+        transform: scale(1.1);
+    }
+    .btn-slide {
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+    .btn-slide:hover {
+      transform: scale(1.05);
+    }
+
+    /* Event Card Overlay Styles */
+    .event-card-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .event-card:hover .event-card-overlay {
+      opacity: 1;
+    }
+
+    /* Team Card Hover Effect */
+    .team-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .team-card:hover {
+      transform: translateY(-8px); /* Lift effect on hover */
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15); /* Stronger shadow */
+    }
+
+    /* Scroll-to-top button styles */
+    #scrollToTopBtn {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background-color: #1d4ed8; /* blue-700 */
+      color: #fcd34d; /* yellow-400 */
+      border-radius: 9999px; /* fully rounded */
+      padding: 0.75rem 1rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.2s ease;
+      z-index: 40; /* Below modal, above other content */
+    }
+    #scrollToTopBtn.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    #scrollToTopBtn:hover {
+      transform: translateY(-3px);
+      background-color: #1e40af; /* blue-800 */
+    }
+
+    /* Animation for hero section elements */
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in-down {
+      animation: fadeInDown 1s ease-out forwards;
+    }
+    .animate-fade-in-up {
+      animation: fadeInUp 1s ease-out forwards;
+      animation-delay: 0.3s; /* Delay for sequential animation */
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+  <!-- Navbar -->
+  <nav class="bg-blue-700 text-yellow-400 p-4 shadow-md sticky top-0 z-50 relative">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold">Abhivyakti Club</h1>
+
+      <!-- Hamburger Menu Button (visible on small screens) -->
+      <button id="mobileMenuButton" class="md:hidden text-yellow-400 focus:outline-none" aria-label="Toggle navigation menu">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+        </svg>
+      </button>
+
+      <!-- Desktop Navigation (visible on medium and larger screens) -->
+      <ul class="hidden md:flex space-x-6 text-lg font-medium">
+        <li><a href="#" data-page="home" class="hover:underline">Home</a></li>
+        <li><a href="#" data-page="about" class="hover:underline">About</a></li>
+        <li><a href="#" data-page="rules" class="hover:underline">Rules</a></li>
+        <li><a href="#" data-page="achievements" class="hover:underline">Achievements</a></li>
+        <li><a href="#" data-page="events" class="hover:underline">Events</a></li>
+        <li><a href="#" data-page="team" class="hover:underline">Team</a></li>
+        <li><a href="#" data-page="admin" class="hover:underline">Admin</a></li>
+      </ul>
+    </div>
+
+    <!-- Mobile Navigation Menu (toggled by JavaScript) -->
+    <ul id="mobileMenu" class="mobile-menu md:hidden">
+      <li><a href="#" data-page="home" class="hover:underline">Home</a></li>
+      <li><a href="#" data-page="about" class="hover:underline">About</a></li>
+      <li><a href="#" data-page="rules" class="hover:underline">Rules</a></li>
+      <li><a href="#" data-page="achievements" class="hover:underline">Achievements</a></li>
+      <li><a href="#" data-page="events" class="hover:underline">Events</a></li>
+      <li><a href="#" data-page="team" class="hover:underline">Team</a></li>
+      <li><a href="#" data-page="admin" class="hover:underline">Admin</a></li>
+    </ul>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="flex-grow">
+
+    <!-- Home Page Section -->
+    <section id="home-page" class="page-section active">
+      <!-- Hero Section -->
+      <section class="bg-blue-700 text-yellow-400 py-16 text-center px-4">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
+          <div class="flex-shrink-0">
+            <img src="img/RJIT Logo.png" alt="RJIT Logo" class="w-36 h-36 object-contain mx-auto md:mx-0" onerror="this.onerror=null;this.src='https://placehold.co/144x144/FCD34D/1D4ED8?text=RJIT';" />
+          </div>
+          <div class="flex-1 text-center md:text-center">
+            <h1 class="text-5xl md:text-6xl font-extrabold mb-3">Abhivyakti Club</h1>
+            <p class="text-2xl font-semibold mb-3">Empowering Expressions, Shaping Personalities</p>
+            <p class="text-lg text-blue-100">Welcome to the official website of the Abhivyakti Club at Rustamji Institute of Technology!</p>
+          </div>
+          <div class="flex-shrink-0">
+            <img src="img/Abhivyakti Logo.png" alt="Abhivyakti Club Logo" class="w-36 h-36 object-contain mx-auto md:mx-0" onerror="this.onerror=null;this.src='https://placehold.co/144x144/FCD34D/1D4ED8?text=ABHIVYAKTI';" />
+          </div>
+        </div>
+      </section>
+
+      <!-- Photo Gallery Section -->
+      <section class="py-12 bg-white px-4">
+        <h2 class="text-4xl text-center font-extrabold text-blue-800 mb-10">Our Moments: Photo Gallery</h2>
+        <div id="photo-gallery-content">
+          <!-- Photos will be dynamically loaded here -->
+        </div>
+      </section>
+
+      <!-- Notice Section -->
+      <section class="py-8 bg-yellow-100 px-4">
+        <div class="max-w-4xl mx-auto text-center">
+          <h3 class="text-2xl font-bold text-blue-900 mb-3">📢 Important Notice!</h3>
+          <div id="notice-content" class="space-y-2">
+            <!-- Notices will be dynamically loaded here -->
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- About Page Section -->
+    <section id="about-page" class="page-section">
+      <section class="py-16 px-6 md:px-16 bg-gray-50">
+        <div class="max-w-6xl mx-auto">
+          <h2 class="text-4xl font-extrabold text-blue-800 mb-10 text-center">About Abhivyakti Club</h2>
+          <div class="bg-white p-8 rounded-xl shadow-lg leading-relaxed text-lg text-gray-700 space-y-6">
+            <p>
+              The Abhivyakti Club at Rustamji Institute of Technology is dedicated to fostering and enhancing the communication skills, public speaking abilities, and overall personality development of its members. Founded on the belief that effective expression is key to success in all walks of life, our club provides a dynamic and supportive platform for students to hone these crucial skills.
+            </p>
+            <p>
+              Through a diverse range of activities, workshops, and competitions, Abhivyakti Club aims to build confidence, encourage critical thinking, and promote articulate communication. We believe that every student has a unique voice, and our mission is to empower them to use it effectively, whether in academic presentations, professional interviews, or everyday interactions.
+            </p>
+            <p>
+              Our initiatives include extempore sessions, group discussions, debates, mock interviews, and specialized personality development workshops. We strive to create an environment where students can overcome stage fright, express their ideas clearly, and engage in meaningful dialogue, preparing them to become confident and impactful leaders of tomorrow.
+            </p>
+            <p class="font-semibold text-blue-700">Join us in our journey to empower expressions and shape personalities!</p>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- Rules Page Section -->
+    <section id="rules-page" class="page-section">
+      <section class="py-16 px-6 md:px-16 bg-gray-50">
+        <div class="max-w-6xl mx-auto">
+          <h2 class="text-4xl font-extrabold text-blue-800 mb-10 text-center">Club Rules & Guidelines</h2>
+          <div class="bg-white p-8 rounded-xl shadow-lg leading-relaxed text-lg text-gray-700 space-y-6">
+            <p>To ensure a productive and respectful environment for all members, the Abhivyakti Club operates under the following rules and guidelines:</p>
+
+            <ol class="list-decimal list-inside space-y-4">
+              <li>
+                <strong>Regular Attendance:</strong> Members are expected to attend all scheduled club meetings, workshops, and events. Consistent participation is crucial for individual growth and club success.
+              </li>
+              <li>
+                <strong>Punctuality:</strong> All members must arrive on time for sessions. Punctuality demonstrates respect for fellow members and facilitators.
+              </li>
+              <li>
+                <strong>Active Participation:</strong> Members are encouraged to actively participate in discussions, activities, and competitions. The more you engage, the more you learn.
+              </li>
+              <li>
+                <strong>Respectful Communication:</strong> Maintain a respectful and positive attitude towards all members, faculty, and guests. Constructive criticism is welcome, but personal attacks or offensive language are strictly prohibited.
+              </li>
+              <li>
+                <strong>Preparation:</strong> For specific sessions (e.g., debates, extempore), members are expected to come prepared with relevant information or ideas as instructed.
+              </li>
+              <li>
+                <strong>Feedback and Learning:</strong> Be open to receiving and giving constructive feedback. This is a key component of personal development within the club.
+              </li>
+              <li>
+                <strong>Code of Conduct:</strong> Adhere to the general code of conduct of Rustamji Institute of Technology at all club events and activities.
+              </li>
+              <li>
+                <strong>Contribution:</strong> Members are encouraged to contribute ideas for new events, topics for discussion, and ways to improve the club's functioning.
+              </li>
+              <li>
+                <strong>Event Registration:</strong> Register for events and competitions by the specified deadlines.
+              </li>
+              <li>
+                <strong>Enjoy and Grow:</strong> Most importantly, enjoy your time with the Abhivyakti Club, embrace challenges, and strive for continuous personal and communication growth!
+              </li>
+            </ol>
+            <p class="mt-6 text-center font-semibold text-blue-700">Adherence to these rules ensures a vibrant and enriching experience for everyone.</p>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- Achievements Page Section -->
+    <section id="achievements-page" class="page-section">
+      <section class="py-16 px-6 md:px-16 bg-gray-50">
+        <div class="max-w-6xl mx-auto">
+          <h2 class="text-4xl font-extrabold text-blue-800 mb-10 text-center">Our Achievements & Milestones</h2>
+          <div class="bg-white p-8 rounded-xl shadow-lg leading-relaxed text-lg text-gray-700 space-y-6">
+            <p>The Abhivyakti Club takes immense pride in the accomplishments of its members and the milestones achieved over the years. Our commitment to fostering excellent communication and leadership skills has led to numerous successes:</p>
+
+            <ul class="list-disc list-inside space-y-4">
+              <li>
+                <strong>Inter-College Debate Champions:</strong> Our teams have consistently secured top positions in inter-college debate competitions across the region, showcasing superior argumentative skills and critical thinking.
+              </li>
+              <li>
+                <strong>Public Speaking Excellence:</strong> Many of our members have won accolades in various public speaking contests, including extempore, elocution, and declamation, demonstrating their ability to command an audience.
+              </li>
+              <li>
+                <strong>Successful Placement Records:</strong> Alumni who were active members of Abhivyakti Club often attribute their strong communication skills developed here to their success in securing placements in leading companies.
+              </li>
+              <li>
+                <strong>Annual RJIT Fest Contributions:</strong> We play a pivotal role in organizing and conducting communication-based events during the annual RJIT Fest, drawing large participation and positive feedback.
+              </li>
+              <li>
+                <strong>Workshop Impact:</strong> Our specialized workshops on personality development, interview skills, and group discussions have received overwhelmingly positive feedback, directly contributing to students' personal and professional growth.
+              </li>
+              <li>
+                <strong>Leadership Roles:</strong> Many of our former members have gone on to assume significant leadership roles in various student bodies and organizations within and outside the institute.
+              </li>
+              <li>
+                <strong>Community Engagement:</strong> We have organized and participated in community outreach programs, using communication as a tool for social awareness and positive change.
+              </li>
+              <li>
+                <strong>Continuous Growth:</strong> The club has seen a consistent increase in membership and engagement, reflecting its growing popularity and the value it provides to students.
+              </li>
+            </ul>
+            <p class="mt-6 text-center font-semibold text-blue-700">These achievements are a testament to the dedication of our members and the supportive environment fostered by the Abhivyakti Club.</p>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- Events Page Section -->
+    <section id="events-page" class="page-section">
+      <header class="bg-gradient-to-r from-blue-700 to-blue-900 text-yellow-400 py-20 text-center px-4">
+        <div class="max-w-4xl mx-auto">
+          <h2 class="text-5xl md:text-6xl font-extrabold mb-4 animate-fade-in-down">Our Events: Where Ideas Take Flight</h2>
+          <p class="text-xl md:text-2xl font-medium text-blue-100 animate-fade-in-up">
+            Explore the vibrant array of activities and competitions organized by the Abhivyakti Club.
+          </p>
+        </div>
+      </header>
+
+      <section class="py-16 px-6 md:px-16">
+        <div class="max-w-6xl mx-auto">
+          <h2 class="text-4xl font-extrabold text-blue-800 mb-12 text-center">Club Happenings</h2>
+
+          <!-- Upcoming Events -->
+          <div class="mb-16 bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded-lg shadow-md">
+            <h3 class="text-3xl font-bold text-yellow-700 mb-6 flex items-center">
+              <svg class="w-8 h-8 mr-3 text-yellow-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path></svg>
+              Upcoming Events
+            </h3>
+            <ul id="upcomingEventsList" class="space-y-4 text-lg text-gray-700">
+              <!-- Upcoming events populated by JavaScript -->
+            </ul>
+            <p id="noUpcomingEventsMessage" class="hidden text-gray-600 text-center py-4 text-xl">
+                🎉 Stay tuned! We're planning exciting new events for you. Check back soon!
+            </p>
+          </div>
+
+          <!-- Past Events -->
+          <div>
+            <h3 class="text-3xl font-bold text-blue-700 mb-8 flex items-center">
+              <svg class="w-8 h-8 mr-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l3 3a1 1 0 001.414-1.414L11 9.586V6z" clip-rule="evenodd"></path></svg>
+              Past Events
+            </h3>
+            <div id="pastEventsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <!-- Past events populated by JavaScript -->
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- Team Page Section -->
+    <section id="team-page" class="page-section">
+      <header class="bg-gradient-to-r from-blue-700 to-blue-900 text-yellow-400 py-20 text-center px-4">
+        <div class="max-w-4xl mx-auto">
+          <h2 class="text-5xl md:text-6xl font-extrabold mb-4 animate-fade-in-down">Meet Our Driving Force</h2>
+          <p class="text-xl md:text-2xl font-medium text-blue-100 animate-fade-in-up">
+            The passionate individuals dedicated to empowering expressions and shaping personalities.
+          </p>
+        </div>
+      </header>
+
+      <section class="py-16 px-6 md:px-16">
+        <div class="max-w-6xl mx-auto">
+          <h2 class="text-4xl font-extrabold text-blue-800 mb-12 text-center">Our Leadership & Coordinators</h2>
+
+          <!-- Faculty Coordinator -->
+          <div class="mb-16">
+            <h3 class="text-3xl font-bold text-yellow-700 mb-8 border-b-2 border-yellow-500 pb-3 flex items-center">
+              <svg class="w-8 h-8 mr-3 text-yellow-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"></path></svg>
+              Faculty Coordinator
+            </h3>
+            <div id="faculty-members-grid" class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-8">
+              <!-- Faculty members populated by JavaScript -->
+            </div>
+          </div>
+
+          <!-- Chief Coordinator -->
+          <div class="mb-16">
+            <h3 class="text-3xl font-bold text-yellow-700 mb-8 border-b-2 border-yellow-500 pb-3 flex items-center">
+              <svg class="w-8 h-8 mr-3 text-yellow-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M9 6a3 3 0 10-6 0v2l-2 5h10l-2-5V6z"></path><path d="M11 20a2 2 0 01-2-2v-6a2 2 0 012-2h2a2 2 0 012 2v6a2 2 0 01-2 2h-2z" clip-rule="evenodd"></path></svg>
+              Chief Coordinator
+            </h3>
+            <div id="chief-members-grid" class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-8">
+              <!-- Chief members populated by JavaScript -->
+            </div>
+          </div>
+
+          <!-- Secretary & Treasurer -->
+          <div class="mb-16">
+            <h3 class="text-3xl font-bold text-yellow-700 mb-8 border-b-2 border-yellow-500 pb-3 flex items-center">
+              <svg class="w-8 h-8 mr-3 text-yellow-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              Secretary & Treasurer
+            </h3>
+            <div id="secretary-treasurer-members-grid" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <!-- Secretary & Treasurer members populated by JavaScript -->
+            </div>
+          </div>
+
+          <!-- Section Coordinators -->
+          <div class="mb-16">
+            <h3 class="text-3xl font-bold text-blue-700 mb-8 border-b-2 border-blue-500 pb-3 flex items-center">
+              <svg class="w-8 h-8 mr-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zm-6 6h6m-6 2h6m-6 2h6"></path></svg>
+              Section Coordinators
+            </h3>
+            <div id="section-coordinators-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <!-- Section Coordinators populated by JavaScript -->
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- Admin Panel Section -->
+    <section id="admin-page" class="page-section">
+      <section class="py-16 px-6 md:px-16 bg-gray-50">
+        <div class="max-w-6xl mx-auto">
+          <h2 class="text-4xl font-extrabold text-blue-800 mb-10 text-center">Admin Panel</h2>
+          <p class="text-center text-gray-700 mb-8">User ID: <span id="admin-user-id" class="font-bold text-blue-700"></span></p>
+
+          <div id="admin-content-wrapper" class="bg-white p-8 rounded-xl shadow-lg">
+            <!-- Login Form or Admin Content will be loaded here by JS -->
+          </div>
+        </div>
+      </section>
+    </section>
+
+  </main>
+
+  <!-- Image Modal View (for Home Page Gallery) -->
+  <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-80 hidden flex-col justify-center items-center z-[100]">
+    <button id="closeImageModalBtn" class="absolute top-4 right-6 text-white text-5xl cursor-pointer" aria-label="Close modal">×</button>
+    <img id="modalImage" class="max-w-[90%] max-h-[80%] md:max-h-[90%] rounded-lg shadow-2xl object-contain" />
+    <div id="modalImageCaption" class="text-white text-lg md:text-xl mt-4 text-center px-4"></div>
+  </div>
+
+  <!-- Event Detail Modal View (for Events Page) -->
+  <div id="eventDetailModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center px-4">
+    <div class="bg-white rounded-xl max-w-xl w-full p-6 relative shadow-2xl animate-fade-in-up">
+      <button id="closeEventDetailModalBtn" class="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-3xl font-semibold transition-colors" aria-label="Close modal">×</button>
+      <h3 id="eventModalTitle" class="text-3xl font-bold text-blue-700 mb-4 border-b pb-2"></h3>
+      <p id="eventModalContent" class="text-gray-700 text-base leading-relaxed"></p>
+    </div>
+  </div>
+
+  <!-- Scroll-to-Top Button -->
+  <button id="scrollToTopBtn" aria-label="Scroll to top">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+  </button>
+
+  <!-- Footer -->
+  <footer class="bg-blue-900 text-white mt-16 pt-8 pb-4 px-6">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div>
+        <h2 class="text-xl font-semibold text-yellow-400 mb-2">Contact Us</h2>
+        <p>Abhivyakti Club, Rustamji Institute of Technology</p>
+        <p>BSF Academy, Tekanpur, Gwalior, Madhya Pradesh</p>
+        <p>Email: <a href="mailto:abhivyakti@rjit.ac.in" class="text-yellow-300 hover:underline">abhivyakti@rjit.ac.in</a></p>
+        <p>Phone: +91 12345 67890</p>
+      </div>
+      <div>
+        <h2 class="text-xl font-semibold text-yellow-400 mb-2">Our Location</h2>
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3594.457280650281!2d78.26911047546185!3d26.001476493828675!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3976c3b7e8b97c67%3A0x642d58a396bcdf94!2sRustamji%20Institute%20Of%20Technology!5e0!3m2!1sen!2sin!4v1621943211446!5m2!1sen!2sin" width="100%" height="200" style="border: 0" allowfullscreen="" loading="lazy" class="rounded-md shadow-md"></iframe>
+      </div>
+      <div>
+        <h2 class="text-xl font-semibold text-yellow-400 mb-2">Follow Us</h2>
+        <div class="flex space-x-4 mt-2">
+          <!-- Instagram SVG -->
+          <a href="#" class="hover:text-yellow-200 transition-colors duration-200" aria-label="Instagram">
+            <svg fill="currentColor" class="w-7 h-7" viewBox="0 0 24 24"><path d="M7.75 2h8.5A5.75 5.75 0 0122 7.75v8.5A5.75 5.75 0 0116.25 22h-8.5A5.75 5.75 0 012 16.25v-8.5A5.75 5.75 0 017.75 2zm0 1.5A4.25 4.25 0 003.5 7.75v8.5A4.25 4.25 0 007.75 20.5h8.5a4.25 4.25 0 004.25-4.25v-8.5A4.25 4.25 0 0016.25 3.5h-8.5zM12 7a5 5 0 110 10 5 5 0 010-10zm0 1.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7zM17.5 6a1 1 0 110 2 1 1 0 010-2z" /></svg>
+          </a>
+          <!-- LinkedIn SVG -->
+          <a href="https://www.linkedin.com/company/43189532/admin/page-posts/published/" class="hover:text-yellow-200 transition-colors duration-200" aria-label="LinkedIn">
+            <svg fill="currentColor" class="w-7 h-7" viewBox="0 0 24 24"><path d="M4.98 3.5A2.5 2.5 0 007.48 6a2.5 2.5 0 01-5 0A2.5 2.5 0 004.98 3.5zM3 8h4v12H3V8zm6 0h3.6v1.72h.05a3.94 3.94 0 013.55-1.95c3.8 0 4.5 2.5 4.5 5.76V20h-4v-5.92c0-1.41-.03-3.23-1.97-3.23-1.97 0-2.27 1.54-2.27 3.13V20H9V8z" /></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <hr class="my-6 border-blue-700" />
+    <div class="text-center text-sm text-gray-300">
+      &copy; 2025 Abhivyakti Club | Designed with ❤️ by Ankit Singh
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    // --- Global Data (Simulated Backend) ---
+    // This data will NOT persist across page refreshes.
+    // In a real application, this would be fetched from a database like Firebase.
+    let appData = {
+      photos: [
+        { id: 'p1', imageUrl: 'img/Principal_Sir.jpg', altText: 'Principal Sir at Orientation 2024', timestamp: '2024-08-01T10:00:00Z' },
+        { id: 'p2', imageUrl: 'img/IMG-20250419-WA0052.jpg', altText: 'Public Speaking Event', timestamp: '2025-04-19T11:00:00Z' },
+        { id: 'p3', imageUrl: 'img/Image 2024-11-26 at 17.38.36_f832106b (1).jpg', altText: 'Mock Parliament Session', timestamp: '2024-11-26T17:38:36Z' },
+        { id: 'p4', imageUrl: 'img/IMG-20250419-WA0069.jpg', altText: 'RJ Talks 3.0 Audience', timestamp: '2025-04-19T12:00:00Z' },
+        { id: 'p5', imageUrl: 'img/IMG-20250425-WA0011.jpg', altText: 'RJ Talks 3.0 Speaker', timestamp: '2025-04-25T10:00:00Z' },
+        { id: 'p6', imageUrl: 'img/IMG-20250425-WA0018.jpg', altText: 'RJ Talks 3.0 Stage', timestamp: '2025-04-25T10:30:00Z' },
+        { id: 'p7', imageUrl: 'img/IMG-20250419-WA0057.jpg', altText: 'RJ Talks 3.0 Interaction', timestamp: '2025-04-19T13:00:00Z' },
+        { id: 'p8', imageUrl: 'img/IMG-20250419-WA0024.jpg', altText: 'RJ Talks 3.0 Participants', timestamp: '2025-04-19T14:00:00Z' },
+        { id: 'p9', imageUrl: 'img/IMG_20241130_145518_565 (1).jpg', altText: 'Club Meeting', timestamp: '2024-11-30T14:55:18Z' },
+      ],
+      notices: [
+        { id: 'n1', message: 'The next club orientation will be held on August 5th at 3:00 PM in the seminar hall. Be on time!', timestamp: '2025-07-15T09:00:00Z' },
+        { id: 'n2', message: 'Debate competition registrations open from July 20th to July 30th.', timestamp: '2025-07-10T10:00:00Z' }
+      ],
+      upcomingEvents: [
+        { id: 'ue1', name: 'Communication Skills Workshop', date: 'August 2025', description: 'A comprehensive workshop focusing on verbal and non-verbal communication techniques.', timestamp: '2025-07-01T00:00:00Z' },
+        { id: 'ue2', name: 'RJIT Annual Fest Debate Competition', date: 'October 2025', description: 'Annual debate competition during the college fest, open to all students.', timestamp: '2025-07-01T00:00:00Z' }
+      ],
+      pastEvents: [
+        { id: 'pe1', title: 'Extempore Session 2024', description: 'Our annual Extempore session helps students master spontaneous thinking and public speaking. Participants tackle diverse topics with minimal preparation, boosting their confidence and quick-wittedness. It\'s a fantastic way to develop on-the-spot articulation skills!', imageUrl: 'images/extempore2024.jpg', date: 'Dec 2024' },
+        { id: 'pe2', title: 'Group Discussion Roundtable', description: 'This engaging roundtable hones analytical and verbal articulation skills. Members dive into structured discussions on current affairs and pressing topics, fostering critical thinking, respectful debate, and collaborative problem-solving. It\'s ideal for refining communication in a team setting.', imageUrl: 'images/group_discussion.jpg', date: 'Nov 2024' },
+        { id: 'pe3', title: 'Personality Development Series', description: 'A comprehensive workshop series designed to enhance holistic personal growth. Modules cover effective public speaking, impactful body language, grooming tips, and strategies for self-motivation and confidence building. Participants gain valuable insights for both personal and professional spheres.', imageUrl: 'images/personality_dev.jpg', date: 'Sep 2024' },
+        { id: 'pe4', title: 'Intercollege Debate Competition', description: 'A highlight of RJIT Fest 2024, this spirited debate competition gathered talented teams from various colleges. They fiercely contended on a range of socio-political and ethical subjects, promoting intellectual discourse, competitive spirit, and broadening perspectives on contemporary issues.', imageUrl: 'img/Equolenza.jpg', date: 'Mar 2024' }
+      ],
+      teamMembers: [
+        { id: 'tm1', name: 'Leut. Dr. Yogita Verma', role: 'Faculty Coordinator', description: 'Faculty member guiding the strategic direction and functioning of the Abhivyakti Club. Supports all student-led initiatives with dedication and expertise.', imageUrl: 'images/faculty.jpg', category: 'faculty', order: 1 },
+        { id: 'tm2', name: 'Mr. Sahil Kumar', role: 'Chief Coordinator', description: 'The visionary lead of Abhivyakti Club, guiding and mentoring students with a clear vision for holistic personality development and club growth.', imageUrl: 'images/chief.jpg', category: 'chief', order: 1 },
+        { id: 'tm3', name: 'Mr. Ankit Singh', role: 'Secretary', description: 'Responsible for planning and coordination of club activities. Leads communication training and organizes modules.', imageUrl: 'img/Ankit.jpg', category: 'secretary_treasurer', order: 1 },
+        { id: 'tm4', name: 'Mr. Ekam Soni', role: 'Treasurer', description: 'Manages the club\'s finances, budgeting for events and ensuring smooth financial operation of Abhivyakti.', imageUrl: 'img/ekam.jpg', category: 'secretary_treasurer', order: 2 },
+        { id: 'tm5', name: 'Mr. Ankush', role: 'Module Coordinator', description: 'Coordinates various learning modules.', imageUrl: 'img/ankush.jpg', category: 'section_coordinator', order: 1 },
+        { id: 'tm6', name: 'Mrs. Venya Gupta', role: 'Extempore Lead', description: 'Leads extempore training sessions.', imageUrl: 'img/IMG-20250614-WA0001.jpg', category: 'section_coordinator', order: 2 },
+        { id: 'tm7', name: 'Mr. Mukund Jha', role: 'Event Coordinator', description: 'Organizes and manages club events.', imageUrl: 'images/event_manager.jpg', category: 'section_coordinator', order: 3 },
+        { id: 'tm8', name: 'Mr. Amit Kumar', role: 'Event Coordinator', description: 'Assists in event planning and execution.', imageUrl: 'images/event_manager.jpg', category: 'section_coordinator', order: 4 },
+        { id: 'tm9', name: 'Mr. MD Arbazz', role: 'Event Coordinator', description: 'Supports event logistics and coordination.', imageUrl: 'images/event_manager.jpg', category: 'section_coordinator', order: 5 },
+        { id: 'tm10', name: 'Mr. Sahil Singh', role: 'Event Coordinator', description: 'Helps in managing event operations.', imageUrl: 'images/event_manager.jpg', category: 'section_coordinator', order: 6 },
+      ]
+    };
+
+    // --- DOM Elements ---
+    const pageSections = document.querySelectorAll('.page-section');
+    const navLinks = document.querySelectorAll('nav a[data-page]');
+    const mobileMenuButton = document.getElementById('mobileMenuButton');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+
+    // Home Page Elements
+    const sliderTrack = document.createElement('div');
+    sliderTrack.id = 'sliderTrack';
+    sliderTrack.className = 'flex transition-transform duration-700 ease-in-out';
+    const dotsContainer = document.createElement('div');
+    dotsContainer.className = 'flex justify-center mt-6';
+    const thumbnailsContainer = document.createElement('div');
+    thumbnailsContainer.className = 'flex flex-wrap justify-center gap-3 mt-6 p-2 bg-gray-100 rounded-lg shadow-inner';
+    const photoGalleryContent = document.getElementById('photo-gallery-content');
+    const noticeContent = document.getElementById('notice-content');
+
+    // Image Modal Elements
+    const imageModal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const modalImageCaption = document.getElementById('modalImageCaption');
+    const closeImageModalBtn = document.getElementById('closeImageModalBtn');
+
+    // Events Page Elements
+    const upcomingEventsList = document.getElementById('upcomingEventsList');
+    const noUpcomingEventsMessage = document.getElementById('noUpcomingEventsMessage');
+    const pastEventsGrid = document.getElementById('pastEventsGrid');
+
+    // Event Detail Modal Elements
+    const eventDetailModal = document.getElementById('eventDetailModal');
+    const eventModalTitle = document.getElementById('eventModalTitle');
+    const eventModalContent = document.getElementById('eventModalContent');
+    const closeEventDetailModalBtn = document.getElementById('closeEventDetailModalBtn');
+
+    // Team Page Elements
+    const facultyMembersGrid = document.getElementById('faculty-members-grid');
+    const chiefMembersGrid = document.getElementById('chief-members-grid');
+    const secretaryTreasurerMembersGrid = document.getElementById('secretary-treasurer-members-grid');
+    const sectionCoordinatorsGrid = document.getElementById('section-coordinators-grid');
+
+    // Admin Panel Elements
+    // These elements are queried dynamically within renderAdminPanelContent
+    // const adminTabButtons = document.querySelectorAll('.admin-tab-btn'); // Moved inside renderAdminPanelContent
+    // const adminForm = document.getElementById('admin-form'); // Moved inside renderAdminPanelContent
+    // const adminFormTitle = document.getElementById('admin-form-title'); // Moved inside renderAdminPanelContent
+    // const adminListContent = document.getElementById('admin-list-content'); // Moved inside renderAdminPanelContent
+    const adminUserIdSpan = document.getElementById('admin-user-id');
+    const adminContentWrapper = document.getElementById('admin-content-wrapper'); // New wrapper for conditional rendering
+
+    let currentSlideIndex = 0;
+    let autoSlideInterval;
+    let isSliderPaused = false;
+    let currentAdminTab = 'photos'; // Default admin tab
+    let editingItemId = null; // For admin panel edit mode
+    let isAdminLoggedIn = false; // New state for admin authorization
+
+    // --- Admin Authorization Logic ---
+    const ADMIN_USERNAME = 'admin'; // Hardcoded username
+    const ADMIN_PASSWORD = 'password123'; // Hardcoded password
+
+    function checkAdminLoginStatus() {
+      // Check sessionStorage for login status
+      isAdminLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
+      renderAdminPanelContent(); // Render content based on status
+    }
+
+    function renderAdminLoginForm() {
+      adminContentWrapper.innerHTML = `
+        <div class="max-w-md mx-auto p-8 bg-white rounded-xl shadow-lg mt-10">
+          <h3 class="text-2xl font-bold text-blue-700 mb-6 text-center">Admin Login</h3>
+          <form id="admin-login-form" class="space-y-4">
+            <div>
+              <label for="admin-username" class="block text-gray-700 text-sm font-bold mb-2">Username:</label>
+              <input type="text" id="admin-username" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div>
+              <label for="admin-password" class="block text-gray-700 text-sm font-bold mb-2">Password:</label>
+              <input type="password" id="admin-password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <p id="login-error-message" class="text-red-500 text-sm text-center hidden">Invalid username or password.</p>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">
+              Login
+            </button>
+          </form>
+        </div>
+      `;
+
+      document.getElementById('admin-login-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('admin-username').value;
+        const password = document.getElementById('admin-password').value;
+        const errorMessage = document.getElementById('login-error-message');
+
+        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+          isAdminLoggedIn = true;
+          sessionStorage.setItem('adminLoggedIn', 'true'); // Store login status
+          errorMessage.classList.add('hidden');
+          renderAdminPanelContent(); // Render actual admin content
+        } else {
+          errorMessage.classList.remove('hidden');
+        }
+      });
+    }
+
+    function renderAdminPanelContent() {
+      if (isAdminLoggedIn) {
+        adminContentWrapper.innerHTML = `
+          <div class="flex flex-wrap justify-center gap-4 mb-8 border-b pb-4">
+            <button data-tab="photos" class="admin-tab-btn px-4 py-2 rounded-full text-lg font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300">Photos</button>
+            <button data-tab="upcomingEvents" class="admin-tab-btn px-4 py-2 rounded-full text-lg font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300">Upcoming Events</button>
+            <button data-tab="pastEvents" class="admin-tab-btn px-4 py-2 rounded-full text-lg font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300">Past Events</button>
+            <button data-tab="teamMembers" class="admin-tab-btn px-4 py-2 rounded-full text-lg font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300">Team Members</button>
+            <button data-tab="notices" class="admin-tab-btn px-4 py-2 rounded-full text-lg font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300">Notices</button>
+          </div>
+
+          <h3 class="text-2xl font-bold text-blue-700 mb-4" id="admin-form-title">Add/Edit Item</h3>
+          <form id="admin-form" class="space-y-4">
+            <!-- Form fields will be dynamically loaded here -->
+          </form>
+
+          <h3 class="text-2xl font-bold text-blue-700 mt-8 mb-4" id="admin-list-title">Current Items</h3>
+          <div id="admin-list-content">
+            <!-- List of items will be dynamically loaded here -->
+          </div>
+          <button id="admin-logout-btn" class="mt-8 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">Logout</button>
+        `;
+
+        // Re-attach event listeners for newly rendered elements
+        // Query elements AFTER they have been added to the DOM
+        const adminTabButtons = document.querySelectorAll('.admin-tab-btn');
+        const adminForm = document.getElementById('admin-form'); // Get reference after rendering
+        const adminListContent = document.getElementById('admin-list-content'); // Get reference after rendering
+        const adminFormTitle = document.getElementById('admin-form-title'); // Get reference after rendering
+
+        adminTabButtons.forEach(button => {
+          button.addEventListener('click', () => {
+            adminTabButtons.forEach(btn => btn.classList.remove('bg-blue-700', 'text-yellow-400'));
+            button.classList.add('bg-blue-700', 'text-yellow-400');
+            currentAdminTab = button.dataset.tab;
+            resetAdminForm(); // Reset form when changing tabs
+            renderAdminList();
+          });
+        });
+        document.getElementById('admin-logout-btn').addEventListener('click', adminLogout);
+
+        // Ensure the correct tab is active on re-render
+        document.querySelector(`.admin-tab-btn[data-tab="${currentAdminTab}"]`).classList.add('bg-blue-700', 'text-yellow-400');
+        renderAdminForm(); // Now these functions can safely access the form/list elements
+        renderAdminList();
+
+      } else {
+        renderAdminLoginForm();
+      }
+    }
+
+    function adminLogout() {
+      isAdminLoggedIn = false;
+      sessionStorage.removeItem('adminLoggedIn'); // Clear login status
+      renderAdminPanelContent(); // Show login form
+      showPage('home-page'); // Redirect to home page
+    }
+
+    // --- Utility Functions ---
+
+    // Function to generate a unique ID (for simulated backend)
+    function generateUniqueId() {
+      return Date.now().toString(36) + Math.random().toString(36).substring(2);
+    }
+
+    // Function to show a specific page and hide others
+    function showPage(pageId) {
+      pageSections.forEach(section => {
+        section.classList.remove('active');
+      });
+      document.getElementById(pageId).classList.add('active');
+
+      // Update active class on navbar links
+      navLinks.forEach(link => {
+        if (link.dataset.page === pageId) {
+          link.classList.add('font-bold', 'text-yellow-300');
+        } else {
+          link.classList.remove('font-bold', 'text-yellow-300');
+        }
+      });
+      window.scrollTo(0, 0); // Scroll to top on page change
+    }
+
+    // Toggle mobile navigation menu
+    function toggleMobileMenu() {
+      mobileMenu.classList.toggle('active');
+    }
+
+    // --- Home Page Logic ---
+
+    // Render photos for the slider and thumbnails
+    function renderPhotos() {
+      if (appData.photos.length === 0) {
+        photoGalleryContent.innerHTML = '<p class="text-center text-gray-600 text-xl">No photos available yet. Check back soon!</p>';
+        return;
+      }
+
+      // Clear previous content
+      sliderTrack.innerHTML = '';
+      dotsContainer.innerHTML = '';
+      thumbnailsContainer.innerHTML = '';
+
+      appData.photos.forEach((photo, index) => {
+        // Slider image
+        const img = document.createElement('img');
+        img.src = photo.imageUrl;
+        img.alt = photo.altText;
+        img.className = 'w-full flex-shrink-0 object-cover h-[400px] md:h-[500px] cursor-pointer';
+        img.onerror = function() { this.onerror=null; this.src='https://placehold.co/800x500/FCD34D/1D4ED8?text=Image'; };
+        img.onclick = () => openImageModal(index);
+        sliderTrack.appendChild(img);
+
+        // Dot navigation
+        const dot = document.createElement('span');
+        dot.classList.add('dot');
+        if (index === currentSlideIndex) dot.classList.add('active');
+        dot.onclick = () => goToSlide(index);
+        dotsContainer.appendChild(dot);
+
+        // Thumbnail
+        const thumbnail = document.createElement('img');
+        thumbnail.src = photo.imageUrl;
+        thumbnail.alt = photo.altText;
+        thumbnail.className = 'thumbnail rounded-md shadow-sm';
+        if (index === currentSlideIndex) thumbnail.classList.add('active');
+        thumbnail.onerror = function() { this.onerror=null; this.src='https://placehold.co/80x80/FCD34D/1D4ED8?text=Thumb'; };
+        thumbnail.onclick = () => goToSlide(index);
+        thumbnailsContainer.appendChild(thumbnail);
+      });
+
+      // Assemble gallery structure if not already present
+      if (!photoGalleryContent.querySelector('.relative')) {
+        const galleryWrapper = document.createElement('div');
+        galleryWrapper.className = 'relative max-w-4xl mx-auto overflow-hidden rounded-xl shadow-lg group';
+
+        const prevBtn = document.createElement('button');
+        prevBtn.onclick = prevSlide;
+        prevBtn.ariaLabel = 'Previous image';
+        prevBtn.className = 'btn-slide absolute top-1/2 left-4 transform -translate-y-1/2 bg-blue-700 hover:bg-blue-800 text-white p-3 rounded-full shadow-lg z-10 transition-transform duration-200';
+        prevBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>';
+
+        const nextBtn = document.createElement('button');
+        nextBtn.onclick = nextSlide;
+        nextBtn.ariaLabel = 'Next image';
+        nextBtn.className = 'btn-slide absolute top-1/2 right-4 transform -translate-y-1/2 bg-blue-700 hover:bg-blue-800 text-white p-3 rounded-full shadow-lg z-10 transition-transform duration-200';
+        nextBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>';
+
+        galleryWrapper.appendChild(sliderTrack);
+        galleryWrapper.appendChild(prevBtn);
+        galleryWrapper.appendChild(nextBtn);
+        photoGalleryContent.appendChild(galleryWrapper);
+        photoGalleryContent.appendChild(dotsContainer);
+        photoGalleryContent.appendChild(thumbnailsContainer);
+
+        // Add hover listeners to the slider track itself
+        sliderTrack.addEventListener('mouseenter', () => isSliderPaused = true);
+        sliderTrack.addEventListener('mouseleave', () => isSliderPaused = false);
+      }
+
+      updateSlideDisplay();
+      startAutoSlide();
+    }
+
+    // Update slider position and active indicators
+    function updateSlideDisplay() {
+      if (sliderTrack) {
+        sliderTrack.style.transform = `translateX(-${currentSlideIndex * 100}%)`;
+      }
+      dotsContainer.querySelectorAll('.dot').forEach((dot, index) => {
+        dot.classList.toggle('active', index === currentSlideIndex);
+      });
+      thumbnailsContainer.querySelectorAll('.thumbnail').forEach((thumbnail, index) => {
+        thumbnail.classList.toggle('active', index === currentSlideIndex);
+        thumbnail.classList.toggle('shadow-md', index === currentSlideIndex);
+      });
+    }
+
+    // Navigate to a specific slide
+    function goToSlide(index) {
+      currentSlideIndex = (index + appData.photos.length) % appData.photos.length;
+      updateSlideDisplay();
+      resetAutoSlide();
+    }
+
+    // Navigate to the next slide
+    function nextSlide() {
+      goToSlide(currentSlideIndex + 1);
+    }
+
+    // Navigate to the previous slide
+    function prevSlide() {
+      goToSlide(currentSlideIndex - 1);
+    }
+
+    // Start auto-play for slider
+    function startAutoSlide() {
+      if (autoSlideInterval) clearInterval(autoSlideInterval); // Clear any existing interval
+      if (appData.photos.length > 1) {
+        autoSlideInterval = setInterval(() => {
+          if (!isSliderPaused) {
+            nextSlide();
+          }
+        }, 5000);
+      }
+    }
+
+    // Reset auto-play timer
+    function resetAutoSlide() {
+      clearInterval(autoSlideInterval);
+      autoSlideInterval = null;
+      startAutoSlide();
+    }
+
+    // Open image modal
+    function openImageModal(index) {
+      modalImage.src = appData.photos[index].imageUrl;
+      modalImageCaption.textContent = appData.photos[index].altText;
+      imageModal.classList.remove('hidden');
+      imageModal.classList.add('flex');
+      document.body.style.overflow = 'hidden'; // Prevent background scroll
+      currentSlideIndex = index; // Set current slide for modal keyboard nav
+    }
+
+    // Close image modal
+    function closeImageModal() {
+      imageModal.classList.add('hidden');
+      imageModal.classList.remove('flex');
+      document.body.style.overflow = ''; // Restore background scroll
+    }
+
+    // Render notices
+    function renderNotices() {
+      noticeContent.innerHTML = '';
+      if (appData.notices.length === 0) {
+        noticeContent.innerHTML = '<p class="text-blue-800 text-lg">No important notices at the moment. Check back soon!</p>';
+        return;
+      }
+      appData.notices.forEach(notice => {
+        const p = document.createElement('p');
+        p.className = 'text-blue-800 text-lg';
+        p.innerHTML = `<strong class="text-blue-700">${notice.message}</strong>`;
+        noticeContent.appendChild(p);
+      });
+    }
+
+    // --- Events Page Logic ---
+
+    // Render upcoming events
+    function renderUpcomingEvents() {
+      upcomingEventsList.innerHTML = '';
+      if (appData.upcomingEvents.length === 0) {
+        noUpcomingEventsMessage.classList.remove('hidden');
+      } else {
+        noUpcomingEventsMessage.classList.add('hidden');
+        appData.upcomingEvents.forEach(event => {
+          const listItem = document.createElement('li');
+          listItem.className = 'flex items-start';
+          listItem.innerHTML = `
+            <svg class="w-6 h-6 mr-3 text-blue-500 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd"></path></svg>
+            <strong>${event.name}</strong> - ${event.date}
+            ${event.description ? `<p class="ml-9 text-sm text-gray-500">${event.description}</p>` : ''}
+          `;
+          upcomingEventsList.appendChild(listItem);
+        });
+      }
+    }
+
+    // Render past events
+    function renderPastEvents() {
+      pastEventsGrid.innerHTML = '';
+      if (appData.pastEvents.length === 0) {
+        pastEventsGrid.innerHTML = '<p class="text-gray-600 text-center py-4 text-xl col-span-full">No past events to display yet.</p>';
+        return;
+      }
+      appData.pastEvents.forEach(event => {
+        const eventCard = document.createElement('div');
+        eventCard.className = 'event-card relative cursor-pointer rounded-xl overflow-hidden shadow-lg border border-gray-200 hover:shadow-2xl transform hover:scale-105 transition duration-300 ease-in-out';
+        eventCard.onclick = () => openEventDetailModal(event.title, event.description);
+        eventCard.innerHTML = `
+          <img src="${event.imageUrl}" alt="${event.title}" class="w-full h-48 object-cover object-center" onerror="this.onerror=null;this.src='https://placehold.co/400x200/1D4ED8/FCD34D?text=Event';" />
+          <div class="p-5">
+            <h4 class="text-xl font-bold text-blue-700 mb-2">${event.title}</h4>
+            <p class="text-gray-600 text-sm">${event.date}</p>
+          </div>
+          <div class="event-card-overlay text-white font-semibold">
+              <span class="text-lg">View Details</span>
+          </div>
+        `;
+        pastEventsGrid.appendChild(eventCard);
+      });
+    }
+
+    // Open event detail modal
+    function openEventDetailModal(title, description) {
+      eventModalTitle.textContent = title;
+      eventModalContent.textContent = description;
+      eventDetailModal.classList.remove('hidden');
+      eventDetailModal.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+    }
+
+    // Close event detail modal
+    function closeEventDetailModal() {
+      eventDetailModal.classList.add('hidden');
+      eventDetailModal.classList.remove('flex');
+      document.body.style.overflow = '';
+    }
+
+    // --- Team Page Logic ---
+
+    // Render team members by category
+    function renderTeamMembers() {
+      const getMembersByCategory = (category) => {
+        return appData.teamMembers.filter(member => member.category === category).sort((a, b) => a.order - b.order);
+      };
+
+      const renderCategory = (container, category, isLargeCard = false) => {
+        container.innerHTML = '';
+        const members = getMembersByCategory(category);
+        if (members.length === 0) {
+          container.innerHTML = `<p class="text-gray-600 text-center col-span-full">No ${category.replace('_', ' ')} members listed yet.</p>`;
+          return;
+        }
+
+        members.forEach(member => {
+          const card = document.createElement('div');
+          card.className = `team-card bg-white p-6 rounded-xl shadow-lg flex items-center space-x-4 ${isLargeCard ? 'flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-8 p-8' : ''}`;
+          card.innerHTML = `
+            <img src="${member.imageUrl}" alt="${member.name}" class="${isLargeCard ? 'w-32 h-32' : 'w-28 h-28'} rounded-full object-cover border-4 border-blue-200 shadow-md" onerror="this.onerror=null;this.src='https://placehold.co/${isLargeCard ? '128x128' : '112x112'}/1D4ED8/FCD34D?text=Member';" />
+            <div class="${isLargeCard ? 'text-center md:text-left' : ''}">
+              <h4 class="${isLargeCard ? 'text-2xl' : 'text-xl'} font-bold text-blue-700 ${isLargeCard ? 'mb-2' : ''}">${member.name}</h4>
+              <p class="text-gray-600 ${isLargeCard ? 'text-base' : 'text-sm mt-1'}">${member.description}</p>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      };
+
+      renderCategory(facultyMembersGrid, 'faculty', true);
+      renderCategory(chiefMembersGrid, 'chief', true);
+      renderCategory(secretaryTreasurerMembersGrid, 'secretary_treasurer');
+      renderCategory(sectionCoordinatorsGrid, 'section_coordinator');
+    }
+
+    // --- Admin Panel Logic ---
+
+    // Render form fields based on active tab
+    function renderAdminForm() {
+      // Get references to elements within the adminContentWrapper
+      const adminForm = document.getElementById('admin-form');
+      const adminFormTitle = document.getElementById('admin-form-title');
+
+      let formHtml = '';
+      let currentItem = {};
+
+      switch (currentAdminTab) {
+        case 'photos':
+          currentItem = editingItemId ? appData.photos.find(p => p.id === editingItemId) || {} : {};
+          adminFormTitle.textContent = editingItemId ? 'Edit Photo' : 'Add New Photo';
+          formHtml = `
+            <input type="text" id="photo-imageUrl" placeholder="Image URL" value="${currentItem.imageUrl || ''}" required class="w-full p-2 border rounded" />
+            <input type="text" id="photo-altText" placeholder="Alt Text" value="${currentItem.altText || ''}" required class="w-full p-2 border rounded" />
+            <div class="flex space-x-2">
+              <button type="submit" class="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 flex items-center"><svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> ${editingItemId ? 'Update Photo' : 'Add Photo'}</button>
+              ${editingItemId ? '<button type="button" id="admin-cancel-edit" class="bg-gray-400 text-white p-2 rounded hover:bg-gray-500">Cancel Edit</button>' : ''}
+            </div>
+          `;
+          break;
+        case 'upcomingEvents':
+          currentItem = editingItemId ? appData.upcomingEvents.find(e => e.id === editingItemId) || {} : {};
+          adminFormTitle.textContent = editingItemId ? 'Edit Upcoming Event' : 'Add New Upcoming Event';
+          formHtml = `
+            <input type="text" id="upcomingEvent-name" placeholder="Event Name" value="${currentItem.name || ''}" required class="w-full p-2 border rounded" />
+            <input type="text" id="upcomingEvent-date" placeholder="Date (e.g., August 2025)" value="${currentItem.date || ''}" required class="w-full p-2 border rounded" />
+            <textarea id="upcomingEvent-description" placeholder="Description (optional)" class="w-full p-2 border rounded">${currentItem.description || ''}</textarea>
+            <div class="flex space-x-2">
+              <button type="submit" class="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 flex items-center"><svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> ${editingItemId ? 'Update Event' : 'Add Event'}</button>
+              ${editingItemId ? '<button type="button" id="admin-cancel-edit" class="bg-gray-400 text-white p-2 rounded hover:bg-gray-500">Cancel Edit</button>' : ''}
+            </div>
+          `;
+          break;
+        case 'pastEvents':
+          currentItem = editingItemId ? appData.pastEvents.find(e => e.id === editingItemId) || {} : {};
+          adminFormTitle.textContent = editingItemId ? 'Edit Past Event' : 'Add New Past Event';
+          formHtml = `
+            <input type="text" id="pastEvent-title" placeholder="Event Title" value="${currentItem.title || ''}" required class="w-full p-2 border rounded" />
+            <input type="text" id="pastEvent-imageUrl" placeholder="Image URL" value="${currentItem.imageUrl || ''}" required class="w-full p-2 border rounded" />
+            <input type="text" id="pastEvent-date" placeholder="Date (e.g., Nov 2024)" value="${currentItem.date || ''}" required class="w-full p-2 border rounded" />
+            <textarea id="pastEvent-description" placeholder="Description" required class="w-full p-2 border rounded">${currentItem.description || ''}</textarea>
+            <div class="flex space-x-2">
+              <button type="submit" class="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 flex items-center"><svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> ${editingItemId ? 'Update Event' : 'Add Event'}</button>
+              ${editingItemId ? '<button type="button" id="admin-cancel-edit" class="bg-gray-400 text-white p-2 rounded hover:bg-gray-500">Cancel Edit</button>' : ''}
+            </div>
+          `;
+          break;
+        case 'teamMembers':
+          currentItem = editingItemId ? appData.teamMembers.find(m => m.id === editingItemId) || {} : { category: 'faculty', order: 0 };
+          adminFormTitle.textContent = editingItemId ? 'Edit Team Member' : 'Add New Team Member';
+          formHtml = `
+            <input type="text" id="teamMember-name" placeholder="Name" value="${currentItem.name || ''}" required class="w-full p-2 border rounded" />
+            <input type="text" id="teamMember-role" placeholder="Role" value="${currentItem.role || ''}" required class="w-full p-2 border rounded" />
+            <input type="text" id="teamMember-description" placeholder="Description" value="${currentItem.description || ''}" class="w-full p-2 border rounded" />
+            <input type="text" id="teamMember-imageUrl" placeholder="Image URL" value="${currentItem.imageUrl || ''}" required class="w-full p-2 border rounded" />
+            <select id="teamMember-category" class="w-full p-2 border rounded">
+              <option value="faculty" ${currentItem.category === 'faculty' ? 'selected' : ''}>Faculty Coordinator</option>
+              <option value="chief" ${currentItem.category === 'chief' ? 'selected' : ''}>Chief Coordinator</option>
+              <option value="secretary_treasurer" ${currentItem.category === 'secretary_treasurer' ? 'selected' : ''}>Secretary & Treasurer</option>
+              <option value="section_coordinator" ${currentItem.category === 'section_coordinator' ? 'selected' : ''}>Section Coordinator</option>
+            </select>
+            <input type="number" id="teamMember-order" placeholder="Order (for sorting)" value="${currentItem.order || 0}" class="w-full p-2 border rounded" />
+            <div class="flex space-x-2">
+              <button type="submit" class="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 flex items-center"><svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> ${editingItemId ? 'Update Member' : 'Add Member'}</button>
+              ${editingItemId ? '<button type="button" id="admin-cancel-edit" class="bg-gray-400 text-white p-2 rounded hover:bg-gray-500">Cancel Edit</button>' : ''}
+            </div>
+          `;
+          break;
+        case 'notices':
+          currentItem = editingItemId ? appData.notices.find(n => n.id === editingItemId) || {} : {};
+          adminFormTitle.textContent = editingItemId ? 'Edit Notice' : 'Add New Notice';
+          formHtml = `
+            <textarea id="notice-message" placeholder="Notice Message" required class="w-full p-2 border rounded">${currentItem.message || ''}</textarea>
+            <div class="flex space-x-2">
+              <button type="submit" class="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 flex items-center"><svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> ${editingItemId ? 'Update Notice' : 'Add Notice'}</button>
+              ${editingItemId ? '<button type="button" id="admin-cancel-edit" class="bg-gray-400 text-white p-2 rounded hover:bg-gray-500">Cancel Edit</button>' : ''}
+            </div>
+          `;
+          break;
+      }
+      adminForm.innerHTML = formHtml;
+
+      // Add event listener for form submission
+      adminForm.onsubmit = (e) => {
+        e.preventDefault();
+        handleAdminFormSubmit(currentAdminTab);
+      };
+
+      // Add event listener for cancel button if in edit mode
+      if (editingItemId) {
+        document.getElementById('admin-cancel-edit').onclick = resetAdminForm;
+      }
+    }
+
+    // Reset admin form and exit edit mode
+    function resetAdminForm() {
+      editingItemId = null;
+      renderAdminForm(); // Re-render form to clear fields
+    }
+
+    // Handle admin form submission (Add/Edit)
+    function handleAdminFormSubmit(tab) {
+      let newItem = {};
+      let collectionArray;
+
+      switch (tab) {
+        case 'photos':
+          newItem = {
+            id: editingItemId || generateUniqueId(),
+            imageUrl: document.getElementById('photo-imageUrl').value,
+            altText: document.getElementById('photo-altText').value,
+            timestamp: new Date().toISOString()
+          };
+          collectionArray = appData.photos;
+          break;
+        case 'upcomingEvents':
+          newItem = {
+            id: editingItemId || generateUniqueId(),
+            name: document.getElementById('upcomingEvent-name').value,
+            date: document.getElementById('upcomingEvent-date').value,
+            description: document.getElementById('upcomingEvent-description').value,
+            timestamp: new Date().toISOString()
+          };
+          collectionArray = appData.upcomingEvents;
+          break;
+        case 'pastEvents':
+          newItem = {
+            id: editingItemId || generateUniqueId(),
+            title: document.getElementById('pastEvent-title').value,
+            imageUrl: document.getElementById('pastEvent-imageUrl').value,
+            date: document.getElementById('pastEvent-date').value,
+            description: document.getElementById('pastEvent-description').value,
+            timestamp: new Date().toISOString()
+          };
+          collectionArray = appData.pastEvents;
+          break;
+        case 'teamMembers':
+          newItem = {
+            id: editingItemId || generateUniqueId(),
+            name: document.getElementById('teamMember-name').value,
+            role: document.getElementById('teamMember-role').value,
+            description: document.getElementById('teamMember-description').value,
+            imageUrl: document.getElementById('teamMember-imageUrl').value,
+            category: document.getElementById('teamMember-category').value,
+            order: parseInt(document.getElementById('teamMember-order').value) || 0,
+            timestamp: new Date().toISOString()
+          };
+          collectionArray = appData.teamMembers;
+          break;
+        case 'notices':
+          newItem = {
+            id: editingItemId || generateUniqueId(),
+            message: document.getElementById('notice-message').value,
+            timestamp: new Date().toISOString()
+          };
+          collectionArray = appData.notices;
+          break;
+      }
+
+      if (editingItemId) {
+        // Update existing item
+        const index = collectionArray.findIndex(item => item.id === editingItemId);
+        if (index !== -1) {
+          collectionArray[index] = newItem;
+        }
+      } else {
+        // Add new item
+        collectionArray.push(newItem);
+      }
+
+      // Sort data if necessary (e.g., photos by timestamp, team members by order)
+      if (tab === 'photos' || tab === 'notices' || tab === 'upcomingEvents' || tab === 'pastEvents') {
+        collectionArray.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      } else if (tab === 'teamMembers') {
+        collectionArray.sort((a, b) => a.order - b.order);
+      }
+
+      resetAdminForm(); // Clear form and exit edit mode
+      renderAdminList(); // Re-render list
+      updateAllPages(); // Update relevant pages
+    }
+
+    // Handle admin item deletion
+    function handleAdminDelete(idToDelete) {
+      if (!confirm('Are you sure you want to delete this item?')) return;
+
+      let collectionArray;
+      switch (currentAdminTab) {
+        case 'photos': collectionArray = appData.photos; break;
+        case 'upcomingEvents': collectionArray = appData.upcomingEvents; break;
+        case 'pastEvents': collectionArray = appData.pastEvents; break;
+        case 'teamMembers': collectionArray = appData.teamMembers; break;
+        case 'notices': collectionArray = appData.notices; break;
+      }
+
+      appData[currentAdminTab] = collectionArray.filter(item => item.id !== idToDelete);
+      renderAdminList(); // Re-render list
+      updateAllPages(); // Update relevant pages
+    }
+
+    // Render list of items for the current admin tab
+    function renderAdminList() {
+      // Get reference to the list content container
+      const adminListContent = document.getElementById('admin-list-content');
+
+      adminListContent.innerHTML = '';
+      let items = appData[currentAdminTab];
+
+      if (items.length === 0) {
+        adminListContent.innerHTML = '<p class="text-center text-gray-600">No items in this category yet. Add one above!</p>';
+        return;
+      }
+
+      const ul = document.createElement('ul');
+      ul.className = 'space-y-3 mt-6';
+
+      items.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'bg-gray-100 p-3 rounded-md flex justify-between items-center shadow-sm';
+
+        let displayText = '';
+        if (item.name) displayText = item.name;
+        else if (item.title) displayText = item.title;
+        else if (item.message) displayText = item.message;
+        else if (item.role) displayText = item.role;
+
+        if (item.date) displayText += ` (${item.date})`;
+        if (item.category) displayText += ` (${item.category})`;
+
+        li.innerHTML = `
+          <span class="text-gray-800 flex-grow">${displayText}</span>
+          <div class="flex space-x-2">
+            <button class="text-blue-600 hover:text-blue-800 edit-btn" data-id="${item.id}" aria-label="Edit">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M13.586 3.586a2 2 0 112.828 2.828l-7.793 7.793a1 1 0 01-.39.242l-3 1a1 1 0 01-1.24-1.24l1-3a1 1 0 01.242-.39l7.793-7.793zM10.5 5.5L14.5 9.5 7 17 3 13 10.5 5.5z"></path></svg>
+            </button>
+            <button class="text-red-600 hover:text-red-800 delete-btn" data-id="${item.id}" aria-label="Delete">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm6 0a1 1 0 11-2 0V7h2v1zm-6 4a1 1 0 100 2h4a1 1 0 100-2H7z" clip-rule="evenodd"></path></svg>
+            </button>
+          </div>
+        `;
+        ul.appendChild(li);
+      });
+      adminListContent.appendChild(ul);
+
+      // Add event listeners for edit/delete buttons
+      ul.querySelectorAll('.edit-btn').forEach(button => {
+        button.onclick = () => {
+          editingItemId = button.dataset.id;
+          renderAdminForm(); // Populate form for editing
+        };
+      });
+      ul.querySelectorAll('.delete-btn').forEach(button => {
+        button.onclick = () => handleAdminDelete(button.dataset.id);
+      });
+    }
+
+    // Update all relevant pages after admin changes
+    function updateAllPages() {
+      renderPhotos();
+      renderNotices();
+      renderUpcomingEvents();
+      renderPastEvents();
+      renderTeamMembers();
+    }
+
+    // --- Event Listeners ---
+
+    // Navbar navigation
+    navLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        showPage(link.dataset.page + '-page');
+        mobileMenu.classList.remove('active'); // Close mobile menu on navigation
+      });
+    });
+
+    // Mobile menu toggle
+    mobileMenuButton.addEventListener('click', toggleMobileMenu);
+
+    // Close mobile menu when a link is clicked
+    mobileMenu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        mobileMenu.classList.remove('active');
+      });
+    });
+
+    // Image Modal keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (imageModal.classList.contains('flex')) { // If modal is open
+        if (e.key === 'ArrowRight') {
+          nextSlide(); // Re-use slider next logic
+          openImageModal(currentSlideIndex); // Update modal content
+        } else if (e.key === 'ArrowLeft') {
+          prevSlide(); // Re-use slider prev logic
+          openImageModal(currentSlideIndex); // Update modal content
+        } else if (e.key === 'Escape') {
+          closeImageModal();
+        }
+      } else if (eventDetailModal.classList.contains('flex')) { // If event modal is open
+        if (e.key === 'Escape') {
+          closeEventDetailModal();
+        }
+      }
+    });
+
+    // Close image modal button
+    closeImageModalBtn.addEventListener('click', closeImageModal);
+
+    // Close event detail modal button
+    closeEventDetailModalBtn.addEventListener('click', closeEventDetailModal);
+
+    // Scroll-to-top button logic
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 300) {
+        scrollToTopBtn.classList.add('show');
+      } else {
+        scrollToTopBtn.classList.remove('show');
+      }
+    });
+    scrollToTopBtn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Admin panel tab switching - these listeners will be re-attached when admin content is rendered
+    // No need to query `adminTabButtons` here directly as they might not exist yet.
+
+    // --- Initial Page Load ---
+    document.addEventListener('DOMContentLoaded', () => {
+      // Check login status and render appropriate admin panel content
+      checkAdminLoginStatus();
+
+      // Render initial content for all public-facing pages
+      updateAllPages();
+
+      // Simulate a user ID for the admin panel (can be displayed regardless of login)
+      adminUserIdSpan.textContent = 'SIMULATED_USER_ID_12345';
+    });
+  </script>
+</body>
+</html>
